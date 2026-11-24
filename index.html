@@ -318,22 +318,16 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
           <div class="inp"><input id="loanRate" name="loanRate" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
           <span class="err">من 0 لـ 100</span>
         </div>
-<div class="field" id="fld-years">
-          <label for="years">المدة</label>
+<div class="field" id="fld-months">
+          <label for="months">المدة بالشهور</label>
           <div class="inp">
-            <button class="step" type="button" data-for="years" data-step="-0.5" aria-label="نقص نص سنة">−</button>
-            <input id="years" name="years" inputmode="decimal" autocomplete="off" spellcheck="false">
-            <button class="step" type="button" data-for="years" data-step="0.5" aria-label="زوّد نص سنة">+</button>
-            <span class="unit">سنة</span>
+            <button class="step" type="button" data-for="months" data-step="-1" aria-label="نقص شهر">−</button>
+            <input id="months" name="months" inputmode="numeric" autocomplete="off" spellcheck="false">
+            <button class="step" type="button" data-for="months" data-step="1" aria-label="زوّد شهر">+</button>
+            <span class="unit">شهر</span>
           </div>
-          <span class="readout" id="months"></span>
-          <span class="err">من 0.1 لـ 30 سنة</span>
-        </div>
-        <div class="field" id="fld-loanMonths">
-          <label for="loanMonths">مدة القرض بالشهور (0 = زي الشهادة)</label>
-          <div class="inp"><input id="loanMonths" name="loanMonths" inputmode="numeric" autocomplete="off" spellcheck="false"><span class="unit">شهر</span></div>
-          <span class="readout" id="loanMonthsRead"></span>
-          <span class="err">من 0 لـ 360 شهر</span>
+          <span class="readout" id="monthsRead"></span>
+          <span class="err">من 1 لـ 360 شهر</span>
         </div>
 <div class="field" id="fld-maxCerts">
           <label for="maxCerts">أقصى عدد شهادات</label>
@@ -479,10 +473,10 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
   <details class="fold">
     <summary>المزيد: مقارنة مدتين بنفس باقي الإعدادات</summary>
     <div class="cmp-top" style="margin-top:12px">
-      <div class="field" id="fld-cmpYears">
-        <label for="cmpYears">مدة المقارنة</label>
-        <div class="inp"><input id="cmpYears" name="cmpYears" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">سنة</span></div>
-        <span class="err">من 0.1 لـ 30 سنة</span>
+      <div class="field" id="fld-cmpMonths">
+        <label for="cmpMonths">مدة المقارنة</label>
+        <div class="inp"><input id="cmpMonths" name="cmpMonths" inputmode="numeric" autocomplete="off" spellcheck="false"><span class="unit">شهر</span></div>
+        <span class="err">من 1 لـ 360 شهر</span>
       </div>
     </div>
     <div class="scroll"><table class="cmpt" id="cmpTbl"><thead><tr><th></th><th scope="col" id="cmpH1"></th><th scope="col" id="cmpH2"></th></tr></thead><tbody id="cmpBody"></tbody></table></div>
@@ -499,8 +493,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
   <details class="fold notes">
     <summary>افتراضات الحساب</summary>
     <ul>
-      <li>القرض بيتسدد بأقساط شهرية متساوية (أصل + فايدة) على مدة القرض (افتراضيًا نفس مدة الشهادة)، والفايدة بتتحسب على الباقي من القرض.</li>
-      <li>لو مدة القرض أطول من الشهادة، الباقي منه بيتسدد من فلوس الشهادات لما تخلص، وفايدة القرض بتتحسب لحد وقتها بس.</li>
+      <li>القرض بيتسدد بأقساط شهرية متساوية (أصل + فايدة) على نفس مدة الشهادة، والفايدة بتتحسب على الباقي من القرض.</li>
       <li>كل الشهادات والقروض بتتفتح في نفس اليوم وبتنتهي مع بعض، وفلوس كل قرض بتدخل في الشهادة اللي بعدها.</li>
       <li>الفرق الشهري = القسط الشهري ناقص فايدة الشهادة اللي اشتريتها بالقرض. فايدة شهادتك الأولى (فلوسك) مش داخلة فيه. الرقم الموجب بتدفعه من جيبك، والرقم بين قوسين بيفضل لك.</li>
       <li>في آخر المدة بتقفل الشهادات وبترجع قيمتها كلها، فالقروض بتتسدد وفلوسك الأولى بترجع.</li>
@@ -519,7 +512,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 /*CALC_START*/
 function compute(p){
   var c=p.certRate/100/12, r=p.loanRate/100/12;
-  var T=Math.max(1,Math.round(p.years*12));
+  var T=Math.max(1,Math.round(p.months));
   var TL=(p.loanMonths>0)?Math.max(1,Math.round(p.loanMonths)):T, Tp=Math.min(T,TL);
   var f=(r===0)?1/TL:r/(1-Math.pow(1+r,-TL));
   function gUnit(rr){
@@ -619,12 +612,12 @@ function compute(p){
 /*CALC_END*/
 
 (function(){
-  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,years:3,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,netTarget:1000,loanMonths:0,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpYears:2};
+  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,months:36,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,netTarget:1000,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpMonths:24};
   var FIELDS={
     amount:{min:0.01,max:1e10,dec:0}, certRate:{min:0,max:100,dec:2}, loanRate:{min:0,max:100,dec:2},
-    years:{min:0.1,max:30,dec:2}, ltv:{min:80,max:100,dec:1}, maxCerts:{min:1,max:10,dec:0},
-    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0}, netTarget:{min:0,max:1e9,dec:0}, loanMonths:{min:0,max:360,dec:0},
-    feePct:{min:0,max:20,dec:2}, feeFix:{min:0,max:1e9,dec:0}, maxLoan:{min:0,max:1e10,dec:0}, cmpYears:{min:0.1,max:30,dec:2}
+    months:{min:1,max:360,dec:0}, ltv:{min:80,max:100,dec:1}, maxCerts:{min:1,max:10,dec:0},
+    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0}, netTarget:{min:0,max:1e9,dec:0},
+    feePct:{min:0,max:20,dec:2}, feeFix:{min:0,max:1e9,dec:0}, maxLoan:{min:0,max:1e10,dec:0}, cmpMonths:{min:1,max:360,dec:0}
   };
   var KEY='cert-plan-v1';
   var $=function(s){return document.querySelector(s)};
@@ -680,7 +673,7 @@ function compute(p){
     });
     el.addEventListener('focus',function(){ el.select(); });
   });
-  var SL={amount:[10000,5000000,10000,10000],certRate:[0,40,.25,.25],loanRate:[0,40,.25,.25],years:[.5,10,.5,.5],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,50000,500,500],netTarget:[0,30000,250,250],loanMonths:[0,120,1,1],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpYears:[.5,10,.5,.5]};
+  var SL={amount:[10000,5000000,10000,10000],certRate:[0,40,.25,.25],loanRate:[0,40,.25,.25],months:[6,120,1,1],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,50000,500,500],netTarget:[0,30000,250,250],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpMonths:[6,120,1,1]};
   var sliders={};
   Object.keys(SL).forEach(function(key){
     var cfg=SL[key], box=$('#fld-'+key), inp=box.querySelector('.inp'), el=$('#'+key);
@@ -719,9 +712,9 @@ function compute(p){
 
   /* ---- suggestions ---- */
   function suggestions(){
-    var YS=[1,1.5,2,3,4,5], res=[], yi, n;
+    var YS=[12,18,24,36,48,60], res=[], yi, n;
     for(yi=0;yi<YS.length;yi++) for(n=2;n<=10;n++){
-      var R=compute(Object.assign({},state,{years:YS[yi],maxCerts:n}));
+      var R=compute(Object.assign({},state,{months:YS[yi],maxCerts:n}));
       if(R.impossible||R.count<2||!(R.net>0)) continue;
       var out=Math.max(0,R.paid)+R.tot.fee;
       res.push({y:YS[yi],n:n,R:R,val:out>0.5?R.net/out:Infinity});
@@ -742,8 +735,8 @@ function compute(p){
     items=merged;
     box.innerHTML=items.map(function(it,i){
       var o=it[1], R=o.R;
-      var same=(o.y===state.years&&o.n===Math.floor(state.maxCerts));
-      return '<div class="sug-card"><h4>'+it[0]+'</h4><div class="cfg">'+fmtField(o.y,1)+' سنة · '+o.n+' شهادات</div><dl>'
+      var same=(o.y===state.months&&o.n===Math.floor(state.maxCerts));
+      return '<div class="sug-card"><h4>'+it[0]+'</h4><div class="cfg">'+o.y+' شهر · '+o.n+' شهادات</div><dl>'
         +'<dt>صافي الربح</dt><dd class="num">'+fmtPlain(R.net)+'</dd>'
         +'<dt>الفرق الشهري من جيبك</dt><dd class="num">'+(R.diffM>0.5?fmtPlain(R.diffM):'-')+'</dd>'
         +'<dt>ربح كل جنيه بتدفعه</dt><dd class="num">'+(o.val===Infinity?'بدون دفع':fmtField(o.val,2))+'</dd>'
@@ -753,8 +746,8 @@ function compute(p){
     box.querySelectorAll('button[data-i]').forEach(function(b){
       b.addEventListener('click',function(){
         var o=items[+b.dataset.i][1];
-        state.years=o.y; state.maxCerts=o.n; save();
-        $('#years').value=fmtField(o.y,2); $('#maxCerts').value=fmtField(o.n,0);
+        state.months=o.y; state.maxCerts=o.n; save();
+        $('#months').value=fmtField(o.y,0); $('#maxCerts').value=fmtField(o.n,0);
         render(); toast('اتطبّق النظام');
       });
     });
@@ -774,8 +767,7 @@ function compute(p){
     if(solving){ amtEl.value=fmtField(Math.round(R.A),0); sliders.amount.value=Math.min(5000000,Math.max(10000,R.A)); }
     else if(document.activeElement!==amtEl){ amtEl.value=fmtField(state.amount,0); }
     $('#fld-amount').querySelector('label').textContent=solving?'فلوسك (اتحسبت تلقائيًا)':'المبلغ اللي هتفتح بيه أول شهادة';
-    $('#months').textContent='= '+R.T+' شهر';
-    $('#loanMonthsRead').textContent=state.loanMonths>0?(R.TL>R.T?'أطول من الشهادة: الباقي بيتسدد من فلوسها في الآخر':(R.TL<R.T?'القرض بيخلص قبل الشهادة':'= مدة الشهادة')):'تلقائي = '+R.T+' شهر';
+    $('#monthsRead').textContent='= '+fmtField(R.T/12,2)+' سنة';
     $('#fld-loanTarget').hidden=state.mode!=='loan';
     $('#fld-diffTarget').hidden=state.mode!=='diff';
     $('#fld-netTarget').hidden=state.mode!=='net';
@@ -805,9 +797,9 @@ function compute(p){
     $('#rFees').textContent=fmt(R.tot.fee);
     $('#rCertTot').textContent=fmt(R.tot.cert);
     $('#rBE').textContent=R.be===null?'-':(R.be>=300?'+300%':fmtField(R.be,2)+'%');
-    var R2=compute(Object.assign({},state,{years:state.cmpYears}));
-    $('#cmpH1').textContent='المدة الحالية ('+fmtField(state.years,2)+' سنة)';
-    $('#cmpH2').textContent='مدة المقارنة ('+fmtField(state.cmpYears,2)+' سنة)';
+    var R2=compute(Object.assign({},state,{months:state.cmpMonths}));
+    $('#cmpH1').textContent='المدة الحالية ('+state.months+' شهر)';
+    $('#cmpH2').textContent='مدة المقارنة ('+state.cmpMonths+' شهر)';
     var mrows=[['فلوسك',R.A,R2.A,0],['إجمالي القروض',R.used,R2.used,0],['عدد الشهادات',R.count,R2.count,0],
       ['الفرق الشهري من جيبك',R.diffM,R2.diffM,-1],['إجمالي اللي هتدفعه من جيبك',R.paid,R2.paid,-1],['رسوم القروض',R.tot.fee,R2.tot.fee,-1],
       ['صافي الربح',R.net,R2.net,1],['اللي هيرجعلك في الآخر',R.final,R2.final,1]];
@@ -871,7 +863,7 @@ function compute(p){
     var R=compute(state), p=state;
     return [
       (p.name||'خطة اللف بالشهادات'),
-      'المبلغ: '+fmtPlain(R.A)+' جنيه | مدة الشهادة: '+R.T+' شهر | مدة القرض: '+R.TL+' شهر | إجمالي قيمة الشهادات: '+fmtPlain(R.tot.cert),
+      'المبلغ: '+fmtPlain(R.A)+' جنيه | المدة: '+R.T+' شهر | إجمالي قيمة الشهادات: '+fmtPlain(R.tot.cert),
       'فايدة الشهادة '+fmtField(p.certRate,2)+'% | فايدة القرض '+fmtField(p.loanRate,2)+'% متناقصة',
       'عدد الشهادات: '+R.count+' | إجمالي القروض: '+fmtPlain(R.used),
       'فايدة شهادتك الأولى في الشهر: '+fmtPlain(R.rows[0].certM)+' | فايدتها ناقص الفرق الشهري: '+fmtPlain(R.rows[0].certM-R.diffM)+'\n'+'القسط الشهري الكلي: '+fmtPlain(R.tot.pmt)+' | صافي الربح في الشهر: '+fmtPlain(R.net/R.T)+' | فايدة كل الشهادات في الشهر: '+fmtPlain(R.tot.certM)+' | فايدة شهر شهادات القروض: '+fmtPlain(R.tot.certM-R.rows[0].certM),

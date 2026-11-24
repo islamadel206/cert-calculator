@@ -1,0 +1,854 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>حاسبة اللف بالشهادات</title>
+<meta name="description" content="حاسبة تفاعلية للف الشهادات والقروض: القسط الشهري والفرق وصافي الربح.">
+<meta name="theme-color" content="#0A101D">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap">
+<style>
+/* v2: dark-first "private banking" look. Layout: slim top bar, KPI band, control tiles in a grid, flow strip, collapsibles, table. Gold = brand/accent; blue/orange/red/green carry certificate/loan/difference/profit. */
+:root{
+  --font:"Cairo","IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;
+  --bg:#0A101D; --bg-2:#0E1627; --surface:#121B2F; --surface-2:#18233B; --ink:#EEF2FB; --muted:#93A1BE;
+  --line:#22304D; --line-strong:#33446B;
+  --accent:#E9B949; --accent-ink:#1B1403; --accent-weak:rgba(233,185,73,.14);
+  --cert:#74ABFF; --cert-weak:rgba(116,171,255,.12);
+  --loan:#FF9D5C; --loan-weak:rgba(255,157,92,.12);
+  --diff:#FF7F7F; --diff-weak:rgba(255,127,127,.12);
+  --good:#4FE0A0; --good-weak:rgba(79,224,160,.12);
+  --warn:#F2C45A; --warn-weak:rgba(242,196,90,.14);
+  --hero-bg:linear-gradient(135deg,#17233F 0%,#101A31 60%,#1B1A2C 100%); --hero-line:rgba(233,185,73,.28);
+  --shadow:0 1px 0 rgba(255,255,255,.04) inset,0 14px 40px rgba(0,0,0,.35);
+  --r:20px; color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root{
+    --bg:#F4F0E6; --bg-2:#EFE9DB; --surface:#FFFFFF; --surface-2:#F8F5EC; --ink:#131E3A; --muted:#5F6A86;
+    --line:#E4DDCB; --line-strong:#CFC6AE;
+    --accent:#131E3A; --accent-ink:#FFFFFF; --accent-weak:rgba(19,30,58,.08);
+    --cert:#1F55B5; --cert-weak:#E6EEFB;
+    --loan:#A9500A; --loan-weak:#FBEBDB;
+    --diff:#A32B2B; --diff-weak:#F9E4E4;
+    --good:#17754C; --good-weak:#E0F3E9;
+    --warn:#7A5300; --warn-weak:#FFF0C8;
+    --hero-bg:linear-gradient(135deg,#131E3A 0%,#1C2B52 100%); --hero-line:rgba(233,185,73,.4);
+    --shadow:0 1px 2px rgba(19,30,58,.06),0 12px 32px rgba(19,30,58,.08);
+    color-scheme:light;
+  }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{scroll-padding-top:70px}
+body{
+  background:var(--bg); color:var(--ink); font-family:var(--font); font-size:15px; line-height:1.6; margin:0;
+  padding-bottom:48px; -webkit-font-smoothing:antialiased;
+  background-image:radial-gradient(900px 400px at 85% -5%,rgba(233,185,73,.08),transparent 60%);
+}
+button,input,summary{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.num{font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.light-ring :focus-visible{outline-color:var(--accent)}
+
+/* top bar */
+.bar-top{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);margin-bottom:6px}
+.bar-in{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;padding:10px max(16px,env(safe-area-inset-right,0px)) 10px max(16px,env(safe-area-inset-left,0px))}
+.logo{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--accent);color:var(--accent-ink)}
+.title-input{flex:1;min-width:0;font-size:clamp(17px,2.4vw,22px);font-weight:800;letter-spacing:-.01em;background:transparent;border:1px solid transparent;border-radius:10px;padding:4px 10px}
+.title-input:hover{border-color:var(--line-strong)}
+.title-input:focus{outline:none;border-color:var(--accent);background:var(--surface)}
+.actions{display:flex;gap:8px;flex:none}
+.btn{border:1px solid var(--line-strong);background:transparent;border-radius:12px;padding:8px 16px;cursor:pointer;font-weight:600;font-size:14px;transition:border-color .15s,background .15s,color .15s}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.primary:hover{color:var(--accent-ink);filter:brightness(1.08)}
+.intro{margin:4px 0 0;color:var(--muted);font-size:14px}
+
+/* KPI band */
+.kpis{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:0;border-radius:var(--r);background:var(--hero-bg);border:1px solid var(--hero-line);box-shadow:var(--shadow);overflow:hidden;color:#fff}
+.kpi{padding:22px 24px;display:grid;gap:4px;align-content:center;border-inline-start:1px solid rgba(255,255,255,.1)}
+.kpi:first-child{border-inline-start:0}
+.kpi .k{font-size:13px;color:rgba(255,255,255,.72);font-weight:600}
+.kpi .v{font-size:clamp(30px,4.4vw,50px);font-weight:800;line-height:1.1;letter-spacing:-.02em}
+.kpi .s{font-size:12.5px;color:rgba(255,255,255,.7)}
+.kpi.main .v{color:#F5CB63}
+.kpi.diff .v{color:#FF9B9B}
+
+/* sections */
+.sec-t{display:flex;align-items:center;gap:12px;margin:6px 0 -6px;font-size:13px;font-weight:700;color:var(--muted);letter-spacing:.06em}
+.sec-t::after{content:"";flex:1;height:1px;background:var(--line)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;min-width:0}
+
+/* controls as tiles */
+.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.mode .fields{grid-template-columns:1fr}
+.field{display:grid;gap:8px;min-width:0;background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:14px 14px 10px}
+.field.full{grid-column:1/-1}
+.field>label,.field>.lbl{font-size:13px;font-weight:700;color:var(--muted)}
+.inp{display:flex;align-items:center;background:var(--bg-2);border:1px solid var(--line-strong);border-radius:12px;overflow:hidden;min-width:0;transition:border-color .15s,box-shadow .15s}
+.inp:hover{border-color:var(--muted)}
+.inp:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-weak)}
+.inp input{flex:1;min-width:0;border:0;background:transparent;padding:8px 6px;font-size:20px;font-weight:700;text-align:right;direction:ltr;font-variant-numeric:tabular-nums}
+.inp input:focus{outline:none}
+.inp .unit{padding-inline:12px;color:var(--muted);font-size:12.5px;white-space:nowrap;border-inline-start:1px solid var(--line);align-self:stretch;display:grid;place-items:center}
+.step{border:0;background:transparent;width:36px;flex:none;align-self:stretch;cursor:pointer;font-size:20px;color:var(--muted);transition:background .15s,color .15s}
+.step:hover{background:var(--accent-weak);color:var(--accent)}
+.step:disabled{opacity:.35;cursor:not-allowed}
+.inp input:disabled{opacity:.65}
+.field.bad{border-color:var(--diff)}
+.err{display:none;color:var(--diff);font-size:12px}
+.field.bad .err{display:block}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+.readout{font-size:12px;color:var(--muted)}
+.rng{-webkit-appearance:none;appearance:none;width:100%;margin:0;height:20px;background:transparent;cursor:pointer;direction:rtl}
+.rng::-webkit-slider-runnable-track{height:4px;border-radius:4px;background:var(--line-strong)}
+.rng::-moz-range-track{height:4px;border-radius:4px;background:var(--line-strong)}
+.rng::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;margin-top:-8px;border-radius:50%;background:var(--accent);border:3px solid var(--surface-2);box-shadow:0 0 0 1px var(--accent)}
+.rng::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--accent);border:3px solid var(--surface-2);box-shadow:0 0 0 1px var(--accent)}
+.rng:disabled{opacity:.35;cursor:not-allowed}
+
+/* mode */
+.mode{display:grid;gap:12px;margin-top:14px}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg-2);border:1px solid var(--line-strong);border-radius:14px;padding:4px;gap:4px}
+.seg label{position:relative;cursor:pointer;margin:0}
+.seg input{position:absolute;opacity:0;inset:0;cursor:pointer}
+.seg span{display:grid;place-items:center;min-height:46px;text-align:center;padding:6px 8px;border-radius:10px;font-size:14px;font-weight:600;color:var(--muted);line-height:1.3;transition:background .15s,color .15s}
+.seg label:hover span{color:var(--ink)}
+.seg input:checked+span{background:var(--accent);color:var(--accent-ink);font-weight:800}
+.seg input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.chk{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px dashed var(--accent);border-radius:14px;background:var(--accent-weak);cursor:pointer}
+.chk input{margin-top:4px;width:18px;height:18px;accent-color:var(--accent);flex:none}
+.chk span{font-weight:700;font-size:14px;line-height:1.4}
+.chk small{display:block;font-weight:400;font-size:12.5px;color:var(--muted);margin-top:2px}
+
+/* disclosure */
+details>summary{list-style:none;cursor:pointer}
+details>summary::-webkit-details-marker{display:none}
+details>summary::after{content:"+";float:left;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--line-strong);color:var(--muted);font-weight:700;line-height:1;transition:background .15s,color .15s}
+details[open]>summary::after{content:"−";background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+details>summary:hover::after{border-color:var(--accent);color:var(--accent)}
+details[open]>summary:hover::after{color:var(--accent-ink)}
+.adv{margin-top:14px;border:1px solid var(--line);border-radius:16px;padding:14px 16px;background:var(--surface-2)}
+.adv summary{font-weight:700;font-size:14px}
+.adv .fields{margin-top:14px}
+.fold{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:0}
+.fold>summary{padding:16px 20px;font-weight:700;font-size:15px}
+.fold[open]>summary{color:var(--accent)}
+.fold>:not(summary){margin-inline:20px}
+.fold>:last-child{margin-bottom:20px}
+.notes ul{margin:0 20px 20px;padding-inline-start:20px;color:var(--muted);font-size:13.5px;display:grid;gap:6px}
+.notes>summary{color:var(--muted)}
+
+/* status */
+.status{display:flex;gap:10px;align-items:center;padding:12px 18px;border-radius:14px;font-weight:700;font-size:14px;background:var(--good-weak);color:var(--good);border:1px solid color-mix(in srgb,var(--good) 30%,transparent)}
+.status.warn{background:var(--warn-weak);color:var(--warn);border-color:color-mix(in srgb,var(--warn) 35%,transparent)}
+.status .dot{width:9px;height:9px;border-radius:50%;background:currentColor;flex:none;box-shadow:0 0 0 4px color-mix(in srgb,currentColor 22%,transparent)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat{padding:14px 16px;border:1px solid var(--line);border-radius:16px;min-width:0;background:var(--surface);position:relative;overflow:hidden}
+.stat::before{content:"";position:absolute;inset-block:0;inset-inline-start:0;width:3px;background:var(--line-strong)}
+.stat .k{font-size:12.5px;color:var(--muted);font-weight:600;line-height:1.4}
+.stat .v{font-size:22px;font-weight:800;margin-top:2px;letter-spacing:-.01em}
+.stat.c-cert::before{background:var(--cert)}
+.stat.c-loan::before{background:var(--loan)}
+.stat.warn{background:var(--diff-weak);border-color:transparent}
+.stat.warn::before{background:var(--diff)}
+.stat.warn .v{color:var(--diff)}
+.stat.ok{background:var(--good-weak);border-color:transparent}
+.stat.ok::before{background:var(--good)}
+.stat.ok .v{color:var(--good)}
+.more-btn{justify-self:start;border:1px solid var(--line-strong);background:transparent;border-radius:12px;padding:7px 16px;cursor:pointer;font-size:13.5px;font-weight:600;color:var(--muted);transition:border-color .15s,color .15s}
+.more-btn:hover{border-color:var(--accent);color:var(--accent)}
+.stack{display:grid;gap:12px}
+
+/* profit comparison */
+.cmp{display:grid;gap:10px}
+.cmp-row{display:grid;grid-template-columns:150px 1fr 90px;gap:12px;align-items:center;font-size:13.5px;font-weight:600}
+.bar{height:14px;border-radius:8px;background:var(--bg-2);border:1px solid var(--line);overflow:hidden}
+.bar i{display:block;height:100%;border-radius:8px;transition:width .3s}
+.bar i.a{background:linear-gradient(90deg,#B9892A,var(--accent))}
+.bar i.b{background:var(--line-strong)}
+.cmp-row .val{font-weight:800;text-align:left}
+.cmp-note{font-size:13px;color:var(--muted);margin:0}
+
+/* suggestions + comparison */
+.sug{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.sug-card{border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:8px;background:var(--surface-2)}
+.sug-card h4{margin:0;font-size:13px;color:var(--accent);font-weight:800}
+.sug-card .cfg{font-weight:800;font-size:18px}
+.sug-card dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:3px 8px;font-size:13px;color:var(--muted)}
+.sug-card dd{margin:0;font-weight:700;color:var(--ink)}
+.sug-card .btn{padding:6px 14px;font-size:13px;justify-self:start}
+.sug-note{grid-column:1/-1;font-size:13px;color:var(--muted);margin:0}
+.cmpt td:first-child,.cmpt th:first-child{text-align:right}
+.cmpt .best{color:var(--good);font-weight:800}
+.cmp-top{display:flex;gap:16px;align-items:end;flex-wrap:wrap;margin:12px 20px}
+.cmp-top .field{width:min(100%,280px)}
+
+/* table */
+.tbl-card{overflow:hidden;padding:0}
+.tbl-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;padding:18px 20px 12px}
+.tbl-head h2{margin:0;font-size:15px;font-weight:800}
+.tbl-head .hint{display:none}
+.scroll{overflow-x:auto;padding:0 0 2px}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:13.5px}
+th,td{padding:9px 10px;text-align:center;white-space:nowrap;border-bottom:1px solid var(--line)}
+thead th{font-weight:700;white-space:normal;line-height:1.35;vertical-align:middle}
+.grp th{border-top:3px solid var(--line-strong);font-size:13px;padding-block:9px}
+.g-cert{background:var(--cert-weak);color:var(--cert);border-top-color:var(--cert)!important}
+.g-loan{background:var(--loan-weak);color:var(--loan);border-top-color:var(--loan)!important}
+.g-diff{background:var(--diff-weak);color:var(--diff);border-top-color:var(--diff)!important}
+.g-base{background:var(--surface-2)}
+.cols th{color:var(--ink)!important;font-size:12.5px;min-width:84px;font-weight:600}
+.s1,.s2{position:sticky;z-index:1}
+.s1{right:0;min-width:40px}
+.s2{right:40px}
+td.s1,td.s2{background:var(--surface)}
+tr.total td.s1,tr.total td.s2{background:var(--surface-2)}
+th.s1,th.s2{z-index:2}
+tbody tr:hover td,tbody tr:hover td.s1,tbody tr:hover td.s2{background:var(--surface-2)}
+.pill{display:inline-block;padding:2px 11px;border-radius:999px;font-size:12px;font-weight:800}
+.pill.own{background:var(--accent-weak);color:var(--accent)}
+.pill.loan{background:var(--loan-weak);color:var(--loan)}
+td.neg{color:var(--good)}
+td.pos{color:var(--diff)}
+td.bold,tr.total td{font-weight:800}
+tr.total td{background:var(--surface-2);border-top:2px solid var(--accent);border-bottom:0;font-size:14.5px}
+td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
+
+.toast{position:fixed;inset-inline:0;bottom:calc(20px + env(safe-area-inset-bottom,0px));margin:auto;width:max-content;max-width:90vw;background:var(--accent);color:var(--accent-ink);padding:10px 20px;border-radius:12px;font-size:14px;font-weight:700;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20;box-shadow:var(--shadow)}
+.toast.on{opacity:1}
+#fallback{width:100%;min-height:150px;border:1px solid var(--line-strong);border-radius:12px;padding:10px;background:var(--surface-2);font-family:var(--font);font-size:13px;direction:rtl}
+
+@media (max-width:860px){
+  .fields{grid-template-columns:1fr 1fr}
+  .kpis{grid-template-columns:1fr 1fr}
+  .kpi.main{grid-column:1/-1;border-bottom:1px solid rgba(255,255,255,.1)}
+  .kpi:nth-child(2){border-inline-start:0}
+  .tbl-head .hint{display:block}
+}
+@media (max-width:560px){
+  .actions .btn{padding:7px 12px;font-size:13px}
+  .logo{display:none}
+  .panel{padding:14px}
+  .kpi{padding:16px}
+  .stats{grid-template-columns:1fr 1fr}
+  .cmp-row{grid-template-columns:100px 1fr 72px}
+  .fields{grid-template-columns:1fr 1fr}
+  .field.full{grid-column:1/-1}
+  .field{padding:12px 10px 8px}
+  .inp input{font-size:18px}
+}
+@media (prefers-reduced-motion:reduce){.bar i,.toast,.btn,.inp{transition:none}}
+
+/* v2b compact two-column layout */
+.layout{display:grid;grid-template-columns:minmax(340px,430px) minmax(0,1fr);gap:14px;align-items:start}
+.col-out{display:grid;gap:12px;min-width:0}
+.col-in{display:grid;gap:8px;min-width:0}
+.ph{font-size:12.5px;font-weight:800;color:var(--muted);letter-spacing:.06em;margin:0 0 8px;display:flex;align-items:center;gap:10px}
+.ph::after{content:"";flex:1;height:1px;background:var(--line)}
+.col-in>.ph{margin:2px 2px 0}
+.panel{padding:14px}
+.panel.flat{padding:12px}
+.fields{grid-template-columns:1fr 1fr;gap:10px}
+.field{padding:10px 10px 8px;gap:6px}
+.inp input{font-size:18px;padding:6px 4px}
+.mode{margin-top:12px;gap:10px}
+.seg span{min-height:40px;font-size:13px}
+.kpi{padding:16px 18px}
+.kpi .v{font-size:clamp(26px,3.4vw,40px)}
+.stats{gap:8px}
+.stat{padding:10px 12px}
+.stat .v{font-size:19px}
+.status{padding:9px 14px;font-size:13.5px}
+.stack{gap:8px}
+.cmp{display:grid;gap:8px}
+.cmp-row{grid-template-columns:130px 1fr 80px}
+.folds{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
+.folds .fold[open]{grid-column:1/-1}
+.folds .fold>summary{padding:13px 16px;font-size:14px}
+.fold>:not(summary){margin-inline:16px}
+.fold>:last-child{margin-bottom:16px}
+.bar-in{padding-block:8px}
+.tbl-head{padding:12px 16px 8px}
+.wrap{gap:12px}
+@media (max-width:980px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  .col-out{order:-1}
+  .folds{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .stats{grid-template-columns:1fr 1fr}
+  .fields{grid-template-columns:1fr 1fr}
+}
+@media (max-width:480px){.fields{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="bar-top"><div class="bar-in">
+  <span class="logo" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 4v5h-5"/><path d="M9 12h6M12 9v6"/></svg></span>
+  <input id="name" class="title-input" type="text" maxlength="60" aria-label="اسم الخطة" placeholder="اسم الخطة…" name="planName" autocomplete="off" spellcheck="false">
+  <div class="actions"><button class="btn primary" id="copy" type="button">نسخ الملخص</button><button class="btn" id="reset" type="button">إعادة ضبط</button></div>
+</div></div>
+<main class="wrap" dir="rtl" lang="ar">
+  <h1 class="sr-only">حاسبة اللف بالشهادات</h1>
+  <div class="layout">
+    <aside class="col-in">
+      <h2 class="ph" style="visibility:hidden;height:0;margin:0">المدخلات</h2>
+      <section class="panel flat" aria-label="المدخلات">
+    <div class="fields">
+<div class="field full" id="fld-amount">
+          <label for="amount">المبلغ اللي هتفتح بيه أول شهادة</label>
+          <div class="inp"><input id="amount" name="amount" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه</span></div>
+          <span class="err">اكتب رقم أكبر من صفر</span>
+        </div>
+<div class="field" id="fld-certRate">
+          <label for="certRate">فايدة الشهادة (سنويًا)</label>
+          <div class="inp"><input id="certRate" name="certRate" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
+          <span class="err">من 0 لـ 100</span>
+        </div>
+<div class="field" id="fld-loanRate">
+          <label for="loanRate">فايدة القرض (سنويًا، متناقصة)</label>
+          <div class="inp"><input id="loanRate" name="loanRate" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
+          <span class="err">من 0 لـ 100</span>
+        </div>
+<div class="field" id="fld-years">
+          <label for="years">المدة</label>
+          <div class="inp">
+            <button class="step" type="button" data-for="years" data-step="-0.5" aria-label="نقص نص سنة">−</button>
+            <input id="years" name="years" inputmode="decimal" autocomplete="off" spellcheck="false">
+            <button class="step" type="button" data-for="years" data-step="0.5" aria-label="زوّد نص سنة">+</button>
+            <span class="unit">سنة</span>
+          </div>
+          <span class="readout" id="months"></span>
+          <span class="err">من 0.1 لـ 30 سنة</span>
+        </div>
+<div class="field" id="fld-maxCerts">
+          <label for="maxCerts">أقصى عدد شهادات</label>
+          <div class="inp">
+            <button class="step" type="button" data-for="maxCerts" data-step="-1" aria-label="نقص شهادة">−</button>
+            <input id="maxCerts" name="maxCerts" inputmode="numeric" autocomplete="off" spellcheck="false">
+            <button class="step" type="button" data-for="maxCerts" data-step="1" aria-label="زوّد شهادة">+</button>
+          </div>
+          <span class="err">من 1 لـ 10</span>
+        </div>
+<div class="field" id="fld-ltv">
+          <label for="ltv" id="ltvLabel">نسبة القرض من قيمة الشهادة</label>
+          <div class="inp"><input id="ltv" name="ltv" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
+          <span class="err">النسبة لازم تكون من 80% لـ 100%</span>
+        </div>
+    </div>
+    <div class="mode">
+      <span class="lbl" id="modeLbl" style="font-size:13px;font-weight:700;color:var(--muted)">إزاي تحدد القرض؟</span>
+      <div class="seg" role="radiogroup" aria-labelledby="modeLbl">
+        <label><input type="radio" name="mode" value="ratio"><span>بنسبة ثابتة</span></label>
+        <label><input type="radio" name="mode" value="loan"><span>قرض مطلوب</span></label>
+        <label><input type="radio" name="mode" value="diff"><span>فرق شهري مستهدف</span></label>
+      </div>
+      <p class="hint" id="modeHint"></p>
+      <div class="fields">
+<div class="field" id="fld-loanTarget" hidden>
+          <label for="loanTarget">إجمالي القرض اللي محتاجه</label>
+          <div class="inp"><input id="loanTarget" name="loanTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه</span></div>
+          <span class="err">اكتب رقم موجب</span>
+        </div>
+<div class="field" id="fld-diffTarget" hidden>
+          <label for="diffTarget">الفرق الشهري اللي عايز تدفعه من جيبك</label>
+          <div class="inp"><input id="diffTarget" name="diffTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
+          <span class="err">اكتب رقم صحيح</span>
+        </div>
+      </div>
+      <label class="chk" id="fld-solve" hidden><input type="checkbox" id="solve"><span>احسب فلوسي أنا تلقائيًا<small>من غير ما أكتب المبلغ: الشهادة الأولى بتتحسب عشان توصل للرقم اللي حددته</small></span></label>
+    </div>
+    <details class="adv">
+          <summary>المزيد: رسوم وسقف القرض</summary>
+          <div class="fields" style="margin-top:12px">
+            <div class="field" id="fld-feePct">
+              <label for="feePct">رسوم القرض (نسبة)</label>
+              <div class="inp"><input id="feePct" name="feePct" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
+              <span class="err">من 0 لـ 20</span>
+            </div>
+            <div class="field" id="fld-feeFix">
+              <label for="feeFix">رسوم ثابتة لكل قرض</label>
+              <div class="inp"><input id="feeFix" name="feeFix" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه</span></div>
+              <span class="err">اكتب رقم موجب</span>
+            </div>
+            <div class="field full" id="fld-maxLoan">
+              <label for="maxLoan">أقصى قيمة للقرض الواحد (0 = بدون سقف)</label>
+              <div class="inp"><input id="maxLoan" name="maxLoan" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه</span></div>
+              <span class="err">اكتب رقم موجب</span>
+            </div>
+          </div>
+          <p class="hint" style="margin-top:8px">الرسوم بتتدفع مرة واحدة من جيبك أول ما القرض يتفتح وبتتخصم من صافي الربح.</p>
+        </details>
+  </section>
+
+  
+    </aside>
+    <div class="col-out">
+      <section class="kpis" aria-label="ملخص النتيجة">
+    <div class="kpi main"><div class="k">اللي هيرجعلك في الآخر</div><div class="v num" id="rFinal"></div><div class="s">فلوسك + صافي الربح</div></div>
+    <div class="kpi"><div class="k">صافي الربح بعد المدة</div><div class="v num" id="rNet"></div><div class="s" id="rNetSub"></div></div>
+    <div class="kpi diff"><div class="k">الفرق الشهري من جيبك</div><div class="v num" id="rDiff"></div><div class="s">جنيه / شهر</div></div>
+  </section>
+
+  
+      <div class="status" id="status" role="status"><span class="dot" aria-hidden="true"></span><span id="statusTxt"></span></div>
+
+  
+      <section class="panel" aria-label="تفاصيل النتيجة">
+        <h3 class="ph">كل شهر</h3>
+        <div class="stats">
+      <div class="stat c-cert"><div class="k">فايدة كل الشهادات</div><div class="v num" id="rAllM"></div></div>
+      <div class="stat c-cert"><div class="k">منها فايدة شهادتك الأولى</div><div class="v num" id="rOwnM"></div></div>
+      <div class="stat c-cert"><div class="k">فايدة شهر شهادات القروض</div><div class="v num" id="rLoanM"></div></div>
+      <div class="stat c-loan"><div class="k">القسط للبنك (كل القروض)</div><div class="v num" id="rPmt"></div></div>
+      <div class="stat"><div class="k">فايدة شهادتك الأولى ناقص الفرق الشهري</div><div class="v num" id="rPmtOwn"></div></div>
+      <div class="stat ok"><div class="k">صافي الربح في الشهر (متوسط)</div><div class="v num" id="rNetM"></div></div>
+    </div>
+  
+        <h3 class="ph" style="margin-top:14px">القروض</h3>
+        <div class="stats">
+      <div class="stat"><div class="k">إجمالي القروض</div><div class="v num" id="rLoans"></div></div>
+      <div class="stat"><div class="k">عدد الشهادات</div><div class="v num" id="rCount"></div></div>
+      <div class="stat"><div class="k">رسوم القروض (مقدمًا)</div><div class="v num" id="rFees"></div></div>
+    </div>
+    <button class="more-btn" type="button" id="moreStats" aria-expanded="false">تفاصيل أكتر ▾</button>
+    <div class="stats" id="statsMore" hidden>
+      <div class="stat"><div class="k">إجمالي اللي هتدفعه على المدة (بيرجع لك)</div><div class="v num" id="rPaid"></div></div>
+      <div class="stat ok"><div class="k">فايدة التعادل للقرض (سنويًا)</div><div class="v num" id="rBE"></div></div>
+    </div>
+  
+        <h3 class="ph" style="margin-top:14px">اللف مقابل شهادة واحدة</h3>
+        <div class="cmp">
+    <div class="cmp-row"><span>ربح اللف</span><div class="bar"><i class="a" id="bA"></i></div><span class="val num" id="vA"></span></div>
+    <div class="cmp-row"><span>فايدة شهادتك لوحدها</span><div class="bar"><i class="b" id="bB"></i></div><span class="val num" id="vB"></span></div>
+    <p class="cmp-note" id="cmpNote"></p>
+  </div>
+      </section>
+    </div>
+  </div>
+
+  <section class="fold tbl-card" aria-labelledby="h-tbl">
+    <div class="tbl-head">
+      <h2 id="h-tbl">الجدول التفصيلي: كل شهادة مع القرض اللي اشتريتها بيه</h2>
+      <p class="hint">اسحب الجدول يمين وشمال</p>
+    </div>
+    <div class="scroll">
+      <table id="tbl">
+        <thead>
+          <tr class="grp">
+            <th scope="col" class="g-base s1" rowspan="1"></th><th scope="col" class="g-base s2"></th>
+            <th scope="col" class="g-cert sep" colspan="3">الشهادة</th>
+            <th scope="col" class="g-loan sep" colspan="7">القرض اللي اشتريت بيه الشهادة</th>
+            <th scope="col" class="g-diff sep" colspan="3">الفرق اللي هتدفعه</th>
+          </tr>
+          <tr class="cols">
+            <th scope="col" class="g-base s1">م</th><th scope="col" class="g-base s2">التمويل</th>
+            <th scope="col" class="g-cert sep">قيمة الشهادة</th><th scope="col" class="g-cert">فايدة شهر</th><th scope="col" class="g-cert">إجمالي الفايدة</th>
+            <th scope="col" class="g-loan sep">نسبة القرض</th><th scope="col" class="g-loan">قيمة القرض</th><th scope="col" class="g-loan">فايدة شهر (أول شهر)</th><th scope="col" class="g-loan">منه أصل</th><th scope="col" class="g-loan">القسط الشهري</th><th scope="col" class="g-loan">إجمالي فايدة القرض</th><th scope="col" class="g-loan">رسوم القرض</th>
+            <th scope="col" class="g-diff sep">الفرق الشهري</th><th scope="col" class="g-diff">الفرق الإجمالي</th><th scope="col" class="g-diff">صافي الربح</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  
+  <div class="folds">
+  <details class="fold">
+    <summary>المزيد: مقارنة مدتين بنفس باقي الإعدادات</summary>
+    <div class="cmp-top" style="margin-top:12px">
+      <div class="field" id="fld-cmpYears">
+        <label for="cmpYears">مدة المقارنة</label>
+        <div class="inp"><input id="cmpYears" name="cmpYears" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">سنة</span></div>
+        <span class="err">من 0.1 لـ 30 سنة</span>
+      </div>
+    </div>
+    <div class="scroll"><table class="cmpt" id="cmpTbl"><thead><tr><th></th><th scope="col" id="cmpH1"></th><th scope="col" id="cmpH2"></th></tr></thead><tbody id="cmpBody"></tbody></table></div>
+  </details>
+
+  
+  <details class="fold" id="sugBox">
+    <summary>المزيد: أفضل نظام ومقترحات</summary>
+    <p class="hint" style="margin:10px 0">بتجرب مدد من سنة لـ 5 سنين وعدد شهادات من 2 لـ 10 بنفس باقي إعداداتك، وبترشحلك الأفضل.</p>
+    <div class="sug" id="sugList"></div>
+  </details>
+
+  
+  <details class="fold notes">
+    <summary>افتراضات الحساب</summary>
+    <ul>
+      <li>القرض بيتسدد بأقساط شهرية متساوية (أصل + فايدة) على نفس مدة الشهادة، والفايدة بتتحسب على الباقي من القرض.</li>
+      <li>كل الشهادات والقروض بتتفتح في نفس اليوم وبتنتهي مع بعض، وفلوس كل قرض بتدخل في الشهادة اللي بعدها.</li>
+      <li>الفرق الشهري = القسط الشهري ناقص فايدة الشهادة اللي اشتريتها بالقرض. فايدة شهادتك الأولى (فلوسك) مش داخلة فيه. الرقم الموجب بتدفعه من جيبك، والرقم بين قوسين بيفضل لك.</li>
+      <li>في آخر المدة بتقفل الشهادات وبترجع قيمتها كلها، فالقروض بتتسدد وفلوسك الأولى بترجع.</li>
+      <li>صافي الربح بيحسب من الشهادات اللي اشتريتها بالقروض ناقص فايدة القروض، من غير فايدة شهادتك الأولى (فلوسك).</li>
+      <li>الأرقام قبل أي رسوم أو مصاريف إدارية أو ضرايب. اتأكد من نسبة القرض وفايدته من البنك، والقرار ليك.</li>
+    </ul>
+  </details>
+
+  </div>
+  <section class="card" id="fbBox" hidden style="padding:16px"><p class="hint" style="margin-bottom:8px">المتصفح منع النسخ التلقائي. الملخص متحدد، انسخه من هنا.</p><textarea id="fallback" readonly></textarea></section>
+
+  
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+/*CALC_START*/
+function compute(p){
+  var c=p.certRate/100/12, r=p.loanRate/100/12;
+  var T=Math.max(1,Math.round(p.years*12));
+  var f=(r===0)?1/T:r/(1-Math.pow(1+r,-T));
+  var ltv=p.ltv/100, N=Math.max(1,Math.floor(p.maxCerts));
+  var feeP=(p.feePct||0)/100, feeF=p.feeFix||0, mx=(p.maxLoan>0)?p.maxLoan:Infinity;
+  function chain(A,cap){
+    var certs=[A], loans=[], used=0, i;
+    for(i=1;i<N;i++){
+      var l=Math.min(certs[i-1]*ltv,mx);
+      if(cap!==null) l=Math.max(0,Math.min(l,cap-used));
+      if(l<=1e-9) break;
+      loans.push(l); used+=l; certs.push(l);
+    }
+    return {certs:certs,loans:loans,used:used};
+  }
+  var A=p.amount, cap=null, impossible=false, solved=false;
+  if(p.solve && (p.mode==='loan'||p.mode==='diff')){
+    solved=true;
+    var kk=(p.mode==='loan')?1:(f-c);
+    var target=(p.mode==='loan')?Math.max(0,p.loanTarget):p.diffTarget;
+    if(N<2||Math.abs(kk)<1e-12){ impossible=true; A=0; }
+    else {
+      var goal=target/kk;
+      if(!(goal>=0)||!isFinite(goal)){ impossible=true; A=0; }
+      else if(goal===0){ A=0; }
+      else if(mx===Infinity){
+        var S=0, pw=1, q;
+        for(q=1;q<N;q++){ pw*=ltv; S+=pw; }
+        if(S<=1e-12){ impossible=true; A=0; } else A=goal/S;
+      } else {
+        var hi=1;
+        while(chain(hi,null).used<goal && hi<1e15) hi*=2;
+        if(chain(hi,null).used<goal-1e-6){ impossible=true; A=0; }
+        else { var lo=0, it; for(it=0;it<200;it++){ var mid=(lo+hi)/2; if(chain(mid,null).used<goal) lo=mid; else hi=mid; } A=hi; }
+      }
+    }
+  }
+  else if(p.mode==='loan'){ cap=Math.max(0,p.loanTarget); }
+  else if(p.mode==='diff'){
+    if(f-c<=1e-12){ impossible=true; cap=0; }
+    else cap=Math.max(0,p.diffTarget/(f-c));
+  }
+  var ch=chain(A,cap), certs=ch.certs, loans=ch.loans, used=ch.used, i;
+  var rows=[], tot={cert:0,certM:0,certT:0,loan:0,int1:0,princ:0,pmt:0,loanInt:0,fee:0,diffM:0,diffT:0,net:0};
+  for(i=0;i<certs.length;i++){
+    var cv=certs[i], cm=cv*c, ct=cm*T;
+    var L=i===0?0:loans[i-1];
+    var ratio=i===0?null:loans[i-1]/certs[i-1];
+    var pmt=L*f, int1=L*r, princ=pmt-int1, loanInt=pmt*T-L;
+    var fee=L>0?L*feeP+feeF:0;
+    var diffM=i===0?0:pmt-cm, diffT=diffM*T, net=i===0?0:ct-loanInt-fee;
+    var row={n:i+1,own:i===0,cert:cv,certM:cm,certT:ct,ratio:ratio,loan:L,int1:int1,princ:princ,pmt:pmt,loanInt:loanInt,fee:fee,diffM:diffM,diffT:diffT,net:net};
+    rows.push(row);
+    for(var k in tot) tot[k]+=row[k];
+  }
+  var maxPossible=chain(A,null).used;
+  var exceeded=(cap!==null && cap>maxPossible+1);
+  var be=null;
+  if(used>1e-9){
+    var certInt=tot.certT-rows[0].certT;
+    var w=1+(certInt-tot.fee)/used;
+    var ft=function(rate){ var r2=rate/12; return r2===0?1:T*r2/(1-Math.pow(1+r2,-T)); };
+    if(w<=1) be=0;
+    else if(ft(3)<w) be=300;
+    else { var a=0,b=3,m2,n2; for(n2=0;n2<100;n2++){ m2=(a+b)/2; if(ft(m2)<w) a=m2; else b=m2; } be=(a+b)/2*100; }
+  }
+  return {T:T,f:f,rows:rows,tot:tot,count:certs.length,used:used,cap:cap,impossible:impossible,solved:solved,A:A,exceeded:exceeded,maxPossible:maxPossible,be:be,
+    net:tot.net, final:A+tot.net, diffM:tot.diffM, paid:tot.diffM*T, single:A*c*T};
+}
+/*CALC_END*/
+
+(function(){
+  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,years:3,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpYears:2};
+  var FIELDS={
+    amount:{min:0.01,max:1e10,dec:0}, certRate:{min:0,max:100,dec:2}, loanRate:{min:0,max:100,dec:2},
+    years:{min:0.1,max:30,dec:2}, ltv:{min:80,max:100,dec:1}, maxCerts:{min:1,max:10,dec:0},
+    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0},
+    feePct:{min:0,max:20,dec:2}, feeFix:{min:0,max:1e9,dec:0}, maxLoan:{min:0,max:1e10,dec:0}, cmpYears:{min:0.1,max:30,dec:2}
+  };
+  var KEY='cert-plan-v1';
+  var $=function(s){return document.querySelector(s)};
+  var state=load();
+
+  function load(){
+    var s=Object.assign({},DEFAULTS);
+    try{
+      var raw=JSON.parse(localStorage.getItem(KEY));
+      if(raw&&typeof raw==='object'){
+        for(var k in DEFAULTS){
+          if(!(k in raw)) continue;
+          if(k==='name'){ if(typeof raw.name==='string') s.name=raw.name.slice(0,60); }
+          else if(k==='solve'){ s.solve=raw.solve===true; }
+          else if(k==='mode'){ if(['ratio','loan','diff'].indexOf(raw.mode)>-1) s.mode=raw.mode; }
+          else if(typeof raw[k]==='number' && isFinite(raw[k]) && raw[k]>=FIELDS[k].min && raw[k]<=FIELDS[k].max) s[k]=raw[k];
+        }
+      }
+    }catch(e){}
+    return s;
+  }
+  function save(){ try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){} }
+
+  function fmt(n){
+    if(!isFinite(n)||Math.abs(n)<0.5) return '-';
+    var s=Math.abs(Math.round(n)).toLocaleString('en-US');
+    return n<0?'('+s+')':s;
+  }
+  function fmtPlain(n){ return Math.round(n).toLocaleString('en-US'); }
+  function fmtField(v,dec){ return v.toLocaleString('en-US',{maximumFractionDigits:dec,minimumFractionDigits:0}); }
+  function parseNum(s){
+    s=String(s).replace(/[٠-٩]/g,function(d){return d.charCodeAt(0)-1632})
+               .replace(/[۰-۹]/g,function(d){return d.charCodeAt(0)-1776})
+               .replace(/[٫]/g,'.').replace(/[,٬\s]/g,'');
+    if(s===''||s==='-'||s==='.') return NaN;
+    return /^-?\d*\.?\d*$/.test(s)?parseFloat(s):NaN;
+  }
+
+  /* ---- bind fields ---- */
+  Object.keys(FIELDS).forEach(function(key){
+    var el=$('#'+key), box=$('#fld-'+key), spec=FIELDS[key];
+    el.value=fmtField(state[key],spec.dec);
+    el.addEventListener('input',function(){
+      var v=parseNum(el.value);
+      if(isNaN(v)||v<spec.min||v>spec.max){ box.classList.add('bad'); return; }
+      box.classList.remove('bad'); state[key]=v; save(); render();
+    });
+    el.addEventListener('blur',function(){
+      var v=parseNum(el.value);
+      if(isNaN(v)) v=state[key];
+      v=Math.min(spec.max,Math.max(spec.min,v));
+      state[key]=v; box.classList.remove('bad'); el.value=fmtField(v,spec.dec); save(); render();
+    });
+    el.addEventListener('focus',function(){ el.select(); });
+  });
+  var SL={amount:[10000,5000000,10000,10000],certRate:[0,40,.25,.25],loanRate:[0,40,.25,.25],years:[.5,10,.5,.5],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,50000,500,500],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpYears:[.5,10,.5,.5]};
+  var sliders={};
+  Object.keys(SL).forEach(function(key){
+    var cfg=SL[key], box=$('#fld-'+key), inp=box.querySelector('.inp'), el=$('#'+key);
+    if(!inp.querySelector('.step')){
+      var mk=function(sg,lab){ var b=document.createElement('button'); b.type='button'; b.className='step'; b.dataset.for=key; b.dataset.step=sg*cfg[3]; b.textContent=sg<0?'−':'+'; b.setAttribute('aria-label',lab); return b; };
+      inp.insertBefore(mk(-1,'نقص'),el); inp.insertBefore(mk(1,'زوّد'),el.nextSibling);
+    }
+    var rg=document.createElement('input'); rg.type='range'; rg.className='rng'; rg.min=cfg[0]; rg.max=cfg[1]; rg.step=cfg[2];
+    rg.setAttribute('aria-label',(box.querySelector('label')||{}).textContent||key);
+    inp.parentNode.insertBefore(rg,inp.nextSibling);
+    rg.addEventListener('input',function(){
+      var v=parseFloat(rg.value), spec=FIELDS[key]; v=Math.min(spec.max,Math.max(spec.min,v));
+      state[key]=v; box.classList.remove('bad'); el.value=fmtField(v,spec.dec); save(); render();
+    });
+    sliders[key]=rg;
+  });
+  document.querySelectorAll('.step').forEach(function(b){
+    b.addEventListener('click',function(){
+      var key=b.dataset.for, spec=FIELDS[key], step=parseFloat(b.dataset.step);
+      var v=Math.round((state[key]+step)*100)/100;
+      v=Math.min(spec.max,Math.max(spec.min,v));
+      state[key]=v; $('#fld-'+key).classList.remove('bad'); $('#'+key).value=fmtField(v,spec.dec); save(); render();
+    });
+  });
+  var nameEl=$('#name'); nameEl.value=state.name;
+  nameEl.addEventListener('input',function(){ state.name=nameEl.value; save(); });
+  document.querySelectorAll('input[name=mode]').forEach(function(r){
+    r.checked=(r.value===state.mode);
+    r.addEventListener('change',function(){ if(r.checked){ state.mode=r.value; save(); render(); } });
+  });
+
+  $('#moreStats').addEventListener('click',function(){
+    var m=$('#statsMore'); m.hidden=!m.hidden; this.setAttribute('aria-expanded',String(!m.hidden)); this.textContent=m.hidden?'تفاصيل أكتر ▾':'تفاصيل أقل ▴';
+  });
+  $('#solve').addEventListener('change',function(){ state.solve=this.checked; save(); render(); });
+
+  /* ---- suggestions ---- */
+  function suggestions(){
+    var YS=[1,1.5,2,3,4,5], res=[], yi, n;
+    for(yi=0;yi<YS.length;yi++) for(n=2;n<=10;n++){
+      var R=compute(Object.assign({},state,{years:YS[yi],maxCerts:n}));
+      if(R.impossible||R.count<2||!(R.net>0)) continue;
+      var out=Math.max(0,R.paid)+R.tot.fee;
+      res.push({y:YS[yi],n:n,R:R,val:out>0.5?R.net/out:Infinity});
+    }
+    var box=$('#sugList');
+    if(!res.length){ box.innerHTML='<p class="sug-note">مفيش نظام رابح بالإعدادات الحالية. جرب تغير فايدة القرض أو الرسوم.</p>'; return; }
+    var best=function(cmp){ return res.slice().sort(cmp)[0]; };
+    var byNet=best(function(a,b){return b.R.net-a.R.net;});
+    var byVal=best(function(a,b){ if(a.val===b.val) return b.R.net-a.R.net; return b.val-a.val; });
+    var byLow=best(function(a,b){ var da=Math.max(0,a.R.diffM), db=Math.max(0,b.R.diffM); return da-db||b.R.net-a.R.net; });
+    var items=[['أعلى ربح',byNet],['أحسن قيمة مقابل اللي بتدفعه',byVal],['أقل دفع شهري من جيبك',byLow]];
+    var merged=[];
+    items.forEach(function(it){
+      var m=merged.filter(function(x){return x[1]===it[1];})[0];
+      if(m) m[0]=(m[2]?m[0]:m[0])+' + '+it[0]; else merged.push([it[0],it[1],1]);
+    });
+    if(merged.length===1) merged[0][0]='الأفضل في كل حاجة: '+merged[0][0];
+    items=merged;
+    box.innerHTML=items.map(function(it,i){
+      var o=it[1], R=o.R;
+      var same=(o.y===state.years&&o.n===Math.floor(state.maxCerts));
+      return '<div class="sug-card"><h4>'+it[0]+'</h4><div class="cfg">'+fmtField(o.y,1)+' سنة · '+o.n+' شهادات</div><dl>'
+        +'<dt>صافي الربح</dt><dd class="num">'+fmtPlain(R.net)+'</dd>'
+        +'<dt>الفرق الشهري من جيبك</dt><dd class="num">'+(R.diffM>0.5?fmtPlain(R.diffM):'-')+'</dd>'
+        +'<dt>ربح كل جنيه بتدفعه</dt><dd class="num">'+(o.val===Infinity?'بدون دفع':fmtField(o.val,2))+'</dd>'
+        +'<dt>فلوسك</dt><dd class="num">'+fmtPlain(R.A)+'</dd></dl>'
+        +(same?'<span class="hint">ده نظامك الحالي</span>':'<button type="button" class="btn" data-i="'+i+'">طبّق النظام ده</button>')+'</div>';
+    }).join('');
+    box.querySelectorAll('button[data-i]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var o=items[+b.dataset.i][1];
+        state.years=o.y; state.maxCerts=o.n; save();
+        $('#years').value=fmtField(o.y,2); $('#maxCerts').value=fmtField(o.n,0);
+        render(); toast('اتطبّق النظام');
+      });
+    });
+  }
+  $('#sugBox').addEventListener('toggle',function(){ if(this.open) suggestions(); });
+
+  /* ---- render ---- */
+  function td(v,cls){ return '<td class="num'+(cls?' '+cls:'')+'">'+v+'</td>'; }
+  function render(){
+    var R=compute(state), t=R.tot;
+    var canSolve=state.mode!=='ratio', solving=canSolve&&state.solve;
+    $('#fld-solve').hidden=!canSolve; $('#solve').checked=!!state.solve;
+    Object.keys(sliders).forEach(function(k){ if(document.activeElement!==sliders[k]) sliders[k].value=state[k]; });
+    var amtEl=$('#amount');
+    amtEl.disabled=solving; sliders.amount.disabled=solving;
+    document.querySelectorAll('.step[data-for=amount]').forEach(function(b){ b.disabled=solving; });
+    if(solving){ amtEl.value=fmtField(Math.round(R.A),0); sliders.amount.value=Math.min(5000000,Math.max(10000,R.A)); }
+    else if(document.activeElement!==amtEl){ amtEl.value=fmtField(state.amount,0); }
+    $('#fld-amount').querySelector('label').textContent=solving?'فلوسك (اتحسبت تلقائيًا)':'المبلغ اللي هتفتح بيه أول شهادة';
+    $('#months').textContent='= '+R.T+' شهر';
+    $('#fld-loanTarget').hidden=state.mode!=='loan';
+    $('#fld-diffTarget').hidden=state.mode!=='diff';
+    $('#ltvLabel').textContent=state.mode==='ratio'?'نسبة القرض من قيمة الشهادة':'أقصى نسبة قرض من الشهادة';
+    $('#modeHint').textContent={
+      ratio:'كل شهادة بتاخد قرض بنسبة ثابتة لحد أقصى عدد شهادات.',
+      loan:'اكتب إجمالي القرض اللي محتاجه والملف يوزعه على الشهادات ويحسب النسب.',
+      diff:'اكتب الفرق الشهري اللي عايز تدفعه والملف يحسب القرض المطلوب ويوزعه.'
+    }[state.mode];
+
+    $('#rFinal').textContent=fmtPlain(R.final);
+    $('#rNet').textContent=fmtPlain(R.net);
+    $('#rNetSub').textContent='على '+R.T+' شهر، من غير فايدة فلوسك';
+    $('#rDiff').textContent=R.diffM>=0.5?fmtPlain(R.diffM):(R.diffM<=-0.5?'('+fmtPlain(-R.diffM)+')':'-');
+    $('#rPaid').textContent=fmt(R.paid);
+    $('#rLoans').textContent=fmt(R.used);
+    $('#rCount').textContent=R.count;
+    $('#rPmt').textContent=fmt(R.tot.pmt);
+    $('#rAllM').textContent=fmt(R.tot.certM);
+    $('#rLoanM').textContent=fmt(R.tot.certM-R.rows[0].certM);
+    var own=R.rows[0].certM, dOwn=own-R.diffM;
+    $('#rOwnM').textContent=fmt(own);
+    var pb=$('#rPmtOwn').parentNode; pb.classList.toggle('ok',dOwn>=0.5); pb.classList.toggle('warn',dOwn<0.5);
+    $('#rPmtOwn').textContent=dOwn<-0.5?'('+fmtPlain(-dOwn)+')':fmt(dOwn);
+    $('#rNetM').textContent=fmt(R.net/R.T);
+    $('#rFees').textContent=fmt(R.tot.fee);
+    $('#rBE').textContent=R.be===null?'-':(R.be>=300?'+300%':fmtField(R.be,2)+'%');
+    var R2=compute(Object.assign({},state,{years:state.cmpYears}));
+    $('#cmpH1').textContent='المدة الحالية ('+fmtField(state.years,2)+' سنة)';
+    $('#cmpH2').textContent='مدة المقارنة ('+fmtField(state.cmpYears,2)+' سنة)';
+    var mrows=[['فلوسك',R.A,R2.A,0],['إجمالي القروض',R.used,R2.used,0],['عدد الشهادات',R.count,R2.count,0],
+      ['الفرق الشهري من جيبك',R.diffM,R2.diffM,-1],['إجمالي اللي هتدفعه من جيبك',R.paid,R2.paid,-1],['رسوم القروض',R.tot.fee,R2.tot.fee,-1],
+      ['صافي الربح',R.net,R2.net,1],['اللي هيرجعلك في الآخر',R.final,R2.final,1]];
+    $('#cmpBody').innerHTML=mrows.map(function(m){
+      var a=Math.round(m[1]),b=Math.round(m[2]),c1='',c2='';
+      if(m[3]!==0&&a!==b){ var aw=(m[3]>0)?a>b:a<b; if(aw)c1='best'; else c2='best'; }
+      return '<tr><td>'+m[0]+'</td>'+td(fmt(m[1]),c1)+td(fmt(m[2]),c2)+'</tr>';
+    }).join('');
+
+    var mx=Math.max(R.net,R.single,1);
+    $('#bA').style.width=Math.max(0,R.net/mx*100)+'%';
+    $('#bB').style.width=Math.max(0,R.single/mx*100)+'%';
+    $('#vA').textContent=fmtPlain(R.net);
+    $('#vB').textContent=fmtPlain(R.single);
+    var extra=R.net;
+    $('#cmpNote').textContent=R.count<2?'مفيش لف: مفيش قرض يتحسب له ربح.':
+      (extra>=0?'اللف بيضيف '+fmtPlain(extra)+' جنيه فوق فايدة شهادتك، مقابل دفع '+fmtPlain(Math.max(0,R.diffM))+' جنيه من جيبك كل شهر.':
+                'اللف خسران '+fmtPlain(-extra)+' جنيه.');
+
+    var st=statusFor(R); var sb=$('#status');
+    sb.classList.toggle('warn',st.warn); $('#statusTxt').textContent=st.text;
+
+    var h='';
+    R.rows.forEach(function(r){
+      var dcls=r.diffM>0.5?'pos':(r.diffM<-0.5?'neg':'');
+      h+='<tr><td class="s1 num">'+r.n+'</td><td class="s2"><span class="pill '+(r.own?'own">فلوسك':'loan">قرض')+'</span></td>'
+        +td(fmtPlain(r.cert),'sep')+td(fmtPlain(r.certM))+td(fmtPlain(r.certT))
+        +td(r.ratio===null?'-':(Math.round(r.ratio*1000)/10)+'%','sep')+td(fmt(r.loan))+td(fmt(r.int1))+td(fmt(r.princ))+td(fmt(r.pmt))+td(fmt(r.loanInt))+td(fmt(r.fee))
+        +td(fmt(r.diffM),'sep '+dcls)+td(fmt(r.diffT),dcls)+td(fmt(r.net),'bold')+'</tr>';
+    });
+    var dt=t.diffM>0.5?'pos':(t.diffM<-0.5?'neg':'');
+    h+='<tr class="total"><td class="s1"></td><td class="s2">الإجمالي</td>'
+      +td(fmtPlain(t.cert),'sep')+td(fmtPlain(t.certM))+td(fmtPlain(t.certT))
+      +td('','sep')+td(fmt(t.loan))+td(fmt(t.int1))+td(fmt(t.princ))+td(fmt(t.pmt))+td(fmt(t.loanInt))+td(fmt(t.fee))
+      +td(fmt(t.diffM),'sep '+dt)+td(fmt(t.diffT),dt)+td(fmt(t.net))+'</tr>';
+    $('#tbody').innerHTML=h;
+    window.__R=R;
+    if($('#sugBox').open) suggestions();
+  }
+
+  function statusFor(R){
+    var p=state;
+    if(Math.floor(p.maxCerts)<2) return {warn:true,text:'مع شهادة واحدة مفيش قرض: زوّد أقصى عدد شهادات.'};
+    if(R.solved){
+      if(R.impossible) return {warn:true,text:'مفيش مبلغ يحقق الرقم ده بالفوايد وعدد الشهادات دي.'};
+      return {warn:false,text:'فلوسك اتحسبت: '+fmtPlain(R.A)+' جنيه، وقرض '+fmtPlain(R.used)+' اتوزع على '+R.count+' شهادات.'};
+    }
+    if(R.impossible) return {warn:true,text:'الفرق الشهري ده مش ممكن بالفوايد دي: القسط أقل من فايدة الشهادة.'};
+    if(p.mode==='ratio') return {warn:false,text:'كل شهادة بقرض '+fmtField(p.ltv,1)+'% لحد '+R.count+' شهادات.'};
+    var what=p.mode==='loan'?'القرض المطلوب':'الفرق المطلوب';
+    if(R.exceeded) return {warn:true,text:what+' أكبر من الممكن بنسبة '+fmtField(p.ltv,1)+'% وعدد الشهادات ده: اتحسب أقصى قرض ممكن ('+fmtPlain(R.used)+').'};
+    if(R.used<1) return {warn:true,text:what+' أقل من اللي ممكن: مفيش قرض اتفتح.'};
+    var last=R.rows[R.rows.length-1], full=last.ratio!==null && last.ratio>=p.ltv/100-1e-9;
+    return {warn:false,text:'قرض '+fmtPlain(R.used)+' اتوزع على '+R.count+' شهادات'+(full?'.':'، وآخر قرض بالباقي.')};
+  }
+
+  /* ---- actions ---- */
+  var toastT; function toast(m){ var t=$('#toast'); t.textContent=m; t.classList.add('on'); clearTimeout(toastT); toastT=setTimeout(function(){t.classList.remove('on')},2200); }
+  function summary(){
+    var R=compute(state), p=state;
+    return [
+      (p.name||'خطة اللف بالشهادات'),
+      'المبلغ: '+fmtPlain(R.A)+' جنيه | المدة: '+R.T+' شهر',
+      'فايدة الشهادة '+fmtField(p.certRate,2)+'% | فايدة القرض '+fmtField(p.loanRate,2)+'% متناقصة',
+      'عدد الشهادات: '+R.count+' | إجمالي القروض: '+fmtPlain(R.used),
+      'فايدة شهادتك الأولى في الشهر: '+fmtPlain(R.rows[0].certM)+' | فايدتها ناقص الفرق الشهري: '+fmtPlain(R.rows[0].certM-R.diffM)+'\n'+'القسط الشهري الكلي: '+fmtPlain(R.tot.pmt)+' | صافي الربح في الشهر: '+fmtPlain(R.net/R.T)+' | فايدة كل الشهادات في الشهر: '+fmtPlain(R.tot.certM)+' | فايدة شهر شهادات القروض: '+fmtPlain(R.tot.certM-R.rows[0].certM),
+      'الفرق الشهري من جيبك: '+fmtPlain(R.diffM),
+      'صافي الربح: '+fmtPlain(R.net)+' | اللي هيرجعلك: '+fmtPlain(R.final),
+      'رسوم القروض: '+fmtPlain(R.tot.fee)+' | فايدة التعادل للقرض: '+(R.be===null?'-':fmtField(R.be,2)+'%')+'\n'+'فايدة شهادتك الأولى لوحدها: '+fmtPlain(R.single)
+    ].join('\n');
+  }
+  $('#copy').addEventListener('click',function(){
+    var txt=summary();
+    var fail=function(){ $('#fbBox').hidden=false; var ta=$('#fallback'); ta.value=txt; ta.focus(); ta.select(); toast('انسخ الملخص من الصندوق تحت'); };
+    try{
+      navigator.clipboard.writeText(txt).then(function(){ $('#fbBox').hidden=true; toast('الملخص اتنسخ'); },fail);
+    }catch(e){ fail(); }
+  });
+  $('#reset').addEventListener('click',function(){
+    state=Object.assign({},DEFAULTS); save();
+    Object.keys(FIELDS).forEach(function(k){ $('#'+k).value=fmtField(state[k],FIELDS[k].dec); $('#fld-'+k).classList.remove('bad'); });
+    nameEl.value=state.name;
+    document.querySelectorAll('input[name=mode]').forEach(function(r){ r.checked=(r.value===state.mode); });
+    render(); toast('رجعت الأرقام الأصلية');
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

@@ -114,7 +114,7 @@ button,input,summary{font:inherit;color:inherit;touch-action:manipulation;-webki
 
 /* mode */
 .mode{display:grid;gap:12px;margin-top:14px}
-.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--bg-2);border:1px solid var(--line-strong);border-radius:14px;padding:4px;gap:4px}
+.seg{display:grid;grid-template-columns:repeat(2,1fr);background:var(--bg-2);border:1px solid var(--line-strong);border-radius:14px;padding:4px;gap:4px}
 .seg label{position:relative;cursor:pointer;margin:0}
 .seg input{position:absolute;opacity:0;inset:0;cursor:pointer}
 .seg span{display:grid;place-items:center;min-height:46px;text-align:center;padding:6px 8px;border-radius:10px;font-size:14px;font-weight:600;color:var(--muted);line-height:1.3;transition:background .15s,color .15s}
@@ -329,6 +329,12 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
           <span class="readout" id="months"></span>
           <span class="err">من 0.1 لـ 30 سنة</span>
         </div>
+        <div class="field" id="fld-loanMonths">
+          <label for="loanMonths">مدة القرض بالشهور (0 = زي الشهادة)</label>
+          <div class="inp"><input id="loanMonths" name="loanMonths" inputmode="numeric" autocomplete="off" spellcheck="false"><span class="unit">شهر</span></div>
+          <span class="readout" id="loanMonthsRead"></span>
+          <span class="err">من 0 لـ 360 شهر</span>
+        </div>
 <div class="field" id="fld-maxCerts">
           <label for="maxCerts">أقصى عدد شهادات</label>
           <div class="inp">
@@ -350,6 +356,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
         <label><input type="radio" name="mode" value="ratio"><span>بنسبة ثابتة</span></label>
         <label><input type="radio" name="mode" value="loan"><span>قرض مطلوب</span></label>
         <label><input type="radio" name="mode" value="diff"><span>فرق شهري مستهدف</span></label>
+        <label><input type="radio" name="mode" value="net"><span>ربح شهري مستهدف</span></label>
       </div>
       <p class="hint" id="modeHint"></p>
       <div class="fields">
@@ -361,6 +368,11 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 <div class="field" id="fld-diffTarget" hidden>
           <label for="diffTarget">الفرق الشهري اللي عايز تدفعه من جيبك</label>
           <div class="inp"><input id="diffTarget" name="diffTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
+          <span class="err">اكتب رقم صحيح</span>
+        </div>
+<div class="field" id="fld-netTarget" hidden>
+          <label for="netTarget">صافي الربح الشهري (متوسط) اللي عايزه</label>
+          <div class="inp"><input id="netTarget" name="netTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
           <span class="err">اكتب رقم صحيح</span>
         </div>
       </div>
@@ -415,13 +427,14 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
   
         <h3 class="ph" style="margin-top:14px">القروض</h3>
         <div class="stats">
+      <div class="stat"><div class="k">إجمالي قيمة الشهادات</div><div class="v num" id="rCertTot"></div></div>
       <div class="stat"><div class="k">إجمالي القروض</div><div class="v num" id="rLoans"></div></div>
       <div class="stat"><div class="k">عدد الشهادات</div><div class="v num" id="rCount"></div></div>
-      <div class="stat"><div class="k">رسوم القروض (مقدمًا)</div><div class="v num" id="rFees"></div></div>
     </div>
     <button class="more-btn" type="button" id="moreStats" aria-expanded="false">تفاصيل أكتر ▾</button>
     <div class="stats" id="statsMore" hidden>
       <div class="stat"><div class="k">إجمالي اللي هتدفعه على المدة (بيرجع لك)</div><div class="v num" id="rPaid"></div></div>
+      <div class="stat"><div class="k">رسوم القروض (مقدمًا)</div><div class="v num" id="rFees"></div></div>
       <div class="stat ok"><div class="k">فايدة التعادل للقرض (سنويًا)</div><div class="v num" id="rBE"></div></div>
     </div>
   
@@ -486,7 +499,8 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
   <details class="fold notes">
     <summary>افتراضات الحساب</summary>
     <ul>
-      <li>القرض بيتسدد بأقساط شهرية متساوية (أصل + فايدة) على نفس مدة الشهادة، والفايدة بتتحسب على الباقي من القرض.</li>
+      <li>القرض بيتسدد بأقساط شهرية متساوية (أصل + فايدة) على مدة القرض (افتراضيًا نفس مدة الشهادة)، والفايدة بتتحسب على الباقي من القرض.</li>
+      <li>لو مدة القرض أطول من الشهادة، الباقي منه بيتسدد من فلوس الشهادات لما تخلص، وفايدة القرض بتتحسب لحد وقتها بس.</li>
       <li>كل الشهادات والقروض بتتفتح في نفس اليوم وبتنتهي مع بعض، وفلوس كل قرض بتدخل في الشهادة اللي بعدها.</li>
       <li>الفرق الشهري = القسط الشهري ناقص فايدة الشهادة اللي اشتريتها بالقرض. فايدة شهادتك الأولى (فلوسك) مش داخلة فيه. الرقم الموجب بتدفعه من جيبك، والرقم بين قوسين بيفضل لك.</li>
       <li>في آخر المدة بتقفل الشهادات وبترجع قيمتها كلها، فالقروض بتتسدد وفلوسك الأولى بترجع.</li>
@@ -506,7 +520,14 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 function compute(p){
   var c=p.certRate/100/12, r=p.loanRate/100/12;
   var T=Math.max(1,Math.round(p.years*12));
-  var f=(r===0)?1/T:r/(1-Math.pow(1+r,-T));
+  var TL=(p.loanMonths>0)?Math.max(1,Math.round(p.loanMonths)):T, Tp=Math.min(T,TL);
+  var f=(r===0)?1/TL:r/(1-Math.pow(1+r,-TL));
+  function gUnit(rr){
+    var r2=rr/12, ff=(r2===0)?1/TL:r2/(1-Math.pow(1+r2,-TL)), bal=0;
+    if(TL>T){ bal=(r2===0)?(1-ff*T):(Math.pow(1+r2,T)-ff*(Math.pow(1+r2,T)-1)/r2); }
+    return ff*Tp-1+bal;
+  }
+  var gU=gUnit(p.loanRate/100);
   var ltv=p.ltv/100, N=Math.max(1,Math.floor(p.maxCerts));
   var feeP=(p.feePct||0)/100, feeF=p.feeFix||0, mx=(p.maxLoan>0)?p.maxLoan:Infinity;
   function chain(A,cap){
@@ -519,8 +540,20 @@ function compute(p){
     }
     return {certs:certs,loans:loans,used:used};
   }
-  var A=p.amount, cap=null, impossible=false, solved=false;
-  if(p.solve && (p.mode==='loan'||p.mode==='diff')){
+  var A=p.amount, cap=null, impossible=false, solved=false, netExceeded=false;
+  var coefN=c*T-gU-feeP, tNet=(p.netTarget||0)*T;
+  function netOf(ch){ return ch.used*coefN-ch.loans.length*feeF; }
+  if(p.solve && p.mode==='net'){
+    solved=true;
+    if(N<2||coefN<=1e-12||!(tNet>0)){ impossible=true; A=0; }
+    else {
+      var hn=1;
+      while(netOf(chain(hn,null))<tNet && hn<1e15) hn*=2;
+      if(netOf(chain(hn,null))<tNet-1e-6){ impossible=true; A=0; }
+      else { var ln=0, itn; for(itn=0;itn<200;itn++){ var mn=(ln+hn)/2; if(netOf(chain(mn,null))<tNet) ln=mn; else hn=mn; } A=hn; }
+    }
+  }
+  else if(p.solve && (p.mode==='loan'||p.mode==='diff')){
     solved=true;
     var kk=(p.mode==='loan')?1:(f-c);
     var target=(p.mode==='loan')?Math.max(0,p.loanTarget):p.diffTarget;
@@ -546,41 +579,51 @@ function compute(p){
     if(f-c<=1e-12){ impossible=true; cap=0; }
     else cap=Math.max(0,p.diffTarget/(f-c));
   }
+  else if(p.mode==='net'){
+    var full=chain(A,null);
+    if(!(tNet>0)||N<2){ cap=0; }
+    else if(coefN<=1e-12){ impossible=true; cap=0; }
+    else if(netOf(full)<tNet-1e-6){ cap=full.used; netExceeded=true; }
+    else {
+      var lc=0, hc=full.used, itc;
+      for(itc=0;itc<200;itc++){ var mc=(lc+hc)/2; if(netOf(chain(A,mc))<tNet) lc=mc; else hc=mc; }
+      cap=hc;
+    }
+  }
   var ch=chain(A,cap), certs=ch.certs, loans=ch.loans, used=ch.used, i;
   var rows=[], tot={cert:0,certM:0,certT:0,loan:0,int1:0,princ:0,pmt:0,loanInt:0,fee:0,diffM:0,diffT:0,net:0};
   for(i=0;i<certs.length;i++){
     var cv=certs[i], cm=cv*c, ct=cm*T;
     var L=i===0?0:loans[i-1];
     var ratio=i===0?null:loans[i-1]/certs[i-1];
-    var pmt=L*f, int1=L*r, princ=pmt-int1, loanInt=pmt*T-L;
+    var pmt=L*f, int1=L*r, princ=pmt-int1, loanInt=L*gU;
     var fee=L>0?L*feeP+feeF:0;
-    var diffM=i===0?0:pmt-cm, diffT=diffM*T, net=i===0?0:ct-loanInt-fee;
+    var diffM=i===0?0:pmt-cm, diffT=diffM*Tp, net=i===0?0:ct-loanInt-fee;
     var row={n:i+1,own:i===0,cert:cv,certM:cm,certT:ct,ratio:ratio,loan:L,int1:int1,princ:princ,pmt:pmt,loanInt:loanInt,fee:fee,diffM:diffM,diffT:diffT,net:net};
     rows.push(row);
     for(var k in tot) tot[k]+=row[k];
   }
   var maxPossible=chain(A,null).used;
-  var exceeded=(cap!==null && cap>maxPossible+1);
+  var exceeded=netExceeded||(cap!==null && p.mode!=='net' && cap>maxPossible+1);
   var be=null;
   if(used>1e-9){
     var certInt=tot.certT-rows[0].certT;
-    var w=1+(certInt-tot.fee)/used;
-    var ft=function(rate){ var r2=rate/12; return r2===0?1:T*r2/(1-Math.pow(1+r2,-T)); };
-    if(w<=1) be=0;
-    else if(ft(3)<w) be=300;
-    else { var a=0,b=3,m2,n2; for(n2=0;n2<100;n2++){ m2=(a+b)/2; if(ft(m2)<w) a=m2; else b=m2; } be=(a+b)/2*100; }
+    var wg=(certInt-tot.fee)/used;
+    if(wg<=0) be=0;
+    else if(gUnit(3)<wg) be=300;
+    else { var a=0,b=3,m2,n2; for(n2=0;n2<100;n2++){ m2=(a+b)/2; if(gUnit(m2)<wg) a=m2; else b=m2; } be=(a+b)/2*100; }
   }
   return {T:T,f:f,rows:rows,tot:tot,count:certs.length,used:used,cap:cap,impossible:impossible,solved:solved,A:A,exceeded:exceeded,maxPossible:maxPossible,be:be,
-    net:tot.net, final:A+tot.net, diffM:tot.diffM, paid:tot.diffM*T, single:A*c*T};
+    net:tot.net, final:A+tot.net, diffM:tot.diffM, paid:tot.diffM*Tp, TL:TL, Tp:Tp, single:A*c*T};
 }
 /*CALC_END*/
 
 (function(){
-  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,years:3,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpYears:2};
+  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,years:3,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,netTarget:1000,loanMonths:0,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpYears:2};
   var FIELDS={
     amount:{min:0.01,max:1e10,dec:0}, certRate:{min:0,max:100,dec:2}, loanRate:{min:0,max:100,dec:2},
     years:{min:0.1,max:30,dec:2}, ltv:{min:80,max:100,dec:1}, maxCerts:{min:1,max:10,dec:0},
-    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0},
+    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0}, netTarget:{min:0,max:1e9,dec:0}, loanMonths:{min:0,max:360,dec:0},
     feePct:{min:0,max:20,dec:2}, feeFix:{min:0,max:1e9,dec:0}, maxLoan:{min:0,max:1e10,dec:0}, cmpYears:{min:0.1,max:30,dec:2}
   };
   var KEY='cert-plan-v1';
@@ -596,7 +639,7 @@ function compute(p){
           if(!(k in raw)) continue;
           if(k==='name'){ if(typeof raw.name==='string') s.name=raw.name.slice(0,60); }
           else if(k==='solve'){ s.solve=raw.solve===true; }
-          else if(k==='mode'){ if(['ratio','loan','diff'].indexOf(raw.mode)>-1) s.mode=raw.mode; }
+          else if(k==='mode'){ if(['ratio','loan','diff','net'].indexOf(raw.mode)>-1) s.mode=raw.mode; }
           else if(typeof raw[k]==='number' && isFinite(raw[k]) && raw[k]>=FIELDS[k].min && raw[k]<=FIELDS[k].max) s[k]=raw[k];
         }
       }
@@ -637,7 +680,7 @@ function compute(p){
     });
     el.addEventListener('focus',function(){ el.select(); });
   });
-  var SL={amount:[10000,5000000,10000,10000],certRate:[0,40,.25,.25],loanRate:[0,40,.25,.25],years:[.5,10,.5,.5],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,50000,500,500],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpYears:[.5,10,.5,.5]};
+  var SL={amount:[10000,5000000,10000,10000],certRate:[0,40,.25,.25],loanRate:[0,40,.25,.25],years:[.5,10,.5,.5],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,50000,500,500],netTarget:[0,30000,250,250],loanMonths:[0,120,1,1],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpYears:[.5,10,.5,.5]};
   var sliders={};
   Object.keys(SL).forEach(function(key){
     var cfg=SL[key], box=$('#fld-'+key), inp=box.querySelector('.inp'), el=$('#'+key);
@@ -732,13 +775,16 @@ function compute(p){
     else if(document.activeElement!==amtEl){ amtEl.value=fmtField(state.amount,0); }
     $('#fld-amount').querySelector('label').textContent=solving?'فلوسك (اتحسبت تلقائيًا)':'المبلغ اللي هتفتح بيه أول شهادة';
     $('#months').textContent='= '+R.T+' شهر';
+    $('#loanMonthsRead').textContent=state.loanMonths>0?(R.TL>R.T?'أطول من الشهادة: الباقي بيتسدد من فلوسها في الآخر':(R.TL<R.T?'القرض بيخلص قبل الشهادة':'= مدة الشهادة')):'تلقائي = '+R.T+' شهر';
     $('#fld-loanTarget').hidden=state.mode!=='loan';
     $('#fld-diffTarget').hidden=state.mode!=='diff';
+    $('#fld-netTarget').hidden=state.mode!=='net';
     $('#ltvLabel').textContent=state.mode==='ratio'?'نسبة القرض من قيمة الشهادة':'أقصى نسبة قرض من الشهادة';
     $('#modeHint').textContent={
       ratio:'كل شهادة بتاخد قرض بنسبة ثابتة لحد أقصى عدد شهادات.',
       loan:'اكتب إجمالي القرض اللي محتاجه والملف يوزعه على الشهادات ويحسب النسب.',
-      diff:'اكتب الفرق الشهري اللي عايز تدفعه والملف يحسب القرض المطلوب ويوزعه.'
+      diff:'اكتب الفرق الشهري اللي عايز تدفعه والملف يحسب القرض المطلوب ويوزعه.',
+      net:'اكتب صافي الربح الشهري اللي عايزه والملف يحسب القرض المطلوب ويوزعه.'
     }[state.mode];
 
     $('#rFinal').textContent=fmtPlain(R.final);
@@ -757,6 +803,7 @@ function compute(p){
     $('#rPmtOwn').textContent=dOwn<-0.5?'('+fmtPlain(-dOwn)+')':fmt(dOwn);
     $('#rNetM').textContent=fmt(R.net/R.T);
     $('#rFees').textContent=fmt(R.tot.fee);
+    $('#rCertTot').textContent=fmt(R.tot.cert);
     $('#rBE').textContent=R.be===null?'-':(R.be>=300?'+300%':fmtField(R.be,2)+'%');
     var R2=compute(Object.assign({},state,{years:state.cmpYears}));
     $('#cmpH1').textContent='المدة الحالية ('+fmtField(state.years,2)+' سنة)';
@@ -808,9 +855,10 @@ function compute(p){
       if(R.impossible) return {warn:true,text:'مفيش مبلغ يحقق الرقم ده بالفوايد وعدد الشهادات دي.'};
       return {warn:false,text:'فلوسك اتحسبت: '+fmtPlain(R.A)+' جنيه، وقرض '+fmtPlain(R.used)+' اتوزع على '+R.count+' شهادات.'};
     }
+    if(R.impossible && p.mode==='net') return {warn:true,text:'الربح الشهري ده مش ممكن بالفوايد دي: القرض مش بيكسب بعد فايدته ورسومه.'};
     if(R.impossible) return {warn:true,text:'الفرق الشهري ده مش ممكن بالفوايد دي: القسط أقل من فايدة الشهادة.'};
     if(p.mode==='ratio') return {warn:false,text:'كل شهادة بقرض '+fmtField(p.ltv,1)+'% لحد '+R.count+' شهادات.'};
-    var what=p.mode==='loan'?'القرض المطلوب':'الفرق المطلوب';
+    var what=p.mode==='loan'?'القرض المطلوب':(p.mode==='net'?'الربح الشهري المطلوب':'الفرق المطلوب');
     if(R.exceeded) return {warn:true,text:what+' أكبر من الممكن بنسبة '+fmtField(p.ltv,1)+'% وعدد الشهادات ده: اتحسب أقصى قرض ممكن ('+fmtPlain(R.used)+').'};
     if(R.used<1) return {warn:true,text:what+' أقل من اللي ممكن: مفيش قرض اتفتح.'};
     var last=R.rows[R.rows.length-1], full=last.ratio!==null && last.ratio>=p.ltv/100-1e-9;
@@ -823,7 +871,7 @@ function compute(p){
     var R=compute(state), p=state;
     return [
       (p.name||'خطة اللف بالشهادات'),
-      'المبلغ: '+fmtPlain(R.A)+' جنيه | المدة: '+R.T+' شهر',
+      'المبلغ: '+fmtPlain(R.A)+' جنيه | مدة الشهادة: '+R.T+' شهر | مدة القرض: '+R.TL+' شهر | إجمالي قيمة الشهادات: '+fmtPlain(R.tot.cert),
       'فايدة الشهادة '+fmtField(p.certRate,2)+'% | فايدة القرض '+fmtField(p.loanRate,2)+'% متناقصة',
       'عدد الشهادات: '+R.count+' | إجمالي القروض: '+fmtPlain(R.used),
       'فايدة شهادتك الأولى في الشهر: '+fmtPlain(R.rows[0].certM)+' | فايدتها ناقص الفرق الشهري: '+fmtPlain(R.rows[0].certM-R.diffM)+'\n'+'القسط الشهري الكلي: '+fmtPlain(R.tot.pmt)+' | صافي الربح في الشهر: '+fmtPlain(R.net/R.T)+' | فايدة كل الشهادات في الشهر: '+fmtPlain(R.tot.certM)+' | فايدة شهر شهادات القروض: '+fmtPlain(R.tot.certM-R.rows[0].certM),

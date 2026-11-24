@@ -673,7 +673,7 @@ function compute(p){
     });
     el.addEventListener('focus',function(){ el.select(); });
   });
-  var SL={amount:[10000,5000000,10000,10000],certRate:[0,40,.25,.25],loanRate:[0,40,.25,.25],months:[6,120,1,1],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,50000,500,500],netTarget:[0,30000,250,250],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpMonths:[6,120,1,1]};
+  var SL={amount:[10000,7000000,10000,10000],certRate:[0,40,.25,.25],loanRate:[0,40,.25,.25],months:[6,120,1,1],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,50000,500,500],netTarget:[0,30000,250,250],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpMonths:[6,120,1,1]};
   var sliders={};
   Object.keys(SL).forEach(function(key){
     var cfg=SL[key], box=$('#fld-'+key), inp=box.querySelector('.inp'), el=$('#'+key);
@@ -764,7 +764,7 @@ function compute(p){
     var amtEl=$('#amount');
     amtEl.disabled=solving; sliders.amount.disabled=solving;
     document.querySelectorAll('.step[data-for=amount]').forEach(function(b){ b.disabled=solving; });
-    if(solving){ amtEl.value=fmtField(Math.round(R.A),0); sliders.amount.value=Math.min(5000000,Math.max(10000,R.A)); }
+    if(solving){ amtEl.value=fmtField(Math.round(R.A),0); sliders.amount.value=Math.min(7000000,Math.max(10000,R.A)); }
     else if(document.activeElement!==amtEl){ amtEl.value=fmtField(state.amount,0); }
     $('#fld-amount').querySelector('label').textContent=solving?'فلوسك (اتحسبت تلقائيًا)':'المبلغ اللي هتفتح بيه أول شهادة';
     $('#monthsRead').textContent='= '+fmtField(R.T/12,2)+' سنة';

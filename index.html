@@ -353,6 +353,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
         <label><input type="radio" name="mode" value="loan"><span>قرض مطلوب</span></label>
         <label><input type="radio" name="mode" value="diff"><span>فرق شهري مستهدف</span></label>
         <label><input type="radio" name="mode" value="net"><span>ربح شهري مستهدف</span></label>
+        <label><input type="radio" name="mode" value="pct"><span>نسبة ربح مستهدفة</span></label>
         <label><input type="radio" name="mode" value="own"><span>فايدة شهادتك ناقص الفرق</span></label>
       </div>
       <p class="hint" id="modeHint"></p>
@@ -370,6 +371,11 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 <div class="field" id="fld-netTarget" hidden>
           <label for="netTarget">صافي الربح الشهري (متوسط) اللي عايزه</label>
           <div class="inp"><input id="netTarget" name="netTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
+          <span class="err">اكتب رقم صحيح</span>
+        </div>
+<div class="field" id="fld-pctTarget" hidden>
+          <label for="pctTarget">نسبة صافي الربح من مبلغك (على المدة كلها)</label>
+          <div class="inp"><input id="pctTarget" name="pctTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
           <span class="err">اكتب رقم صحيح</span>
         </div>
 <div class="field" id="fld-ownTarget" hidden>
@@ -543,7 +549,7 @@ function compute(p){
   }
   var A=p.amount, cap=null, impossible=false, solved=false, netExceeded=false, ownExceeded=false;
   var tOwn=p.ownTarget||0;
-  var coefN=c*T-gU-feeP, tNet=(p.netTarget||0)*T;
+  var coefN=c*T-gU-feeP, tNet=(p.mode==='pct')?(A*(p.pctTarget||0)/100):(p.netTarget||0)*T;
   function netOf(ch){ return ch.used*coefN-ch.loans.length*feeF; }
   if(p.solve && p.mode==='net'){
     solved=true;
@@ -596,7 +602,7 @@ function compute(p){
     if(f-c<=1e-12){ impossible=true; cap=0; }
     else { var rawCap=(A*c-tOwn)/(f-c); if(rawCap<0){ cap=0; ownExceeded=true; } else cap=rawCap; }
   }
-  else if(p.mode==='net'){
+  else if(p.mode==='net'||p.mode==='pct'){
     var full=chain(A,null);
     if(!(tNet>0)||N<2){ cap=0; }
     else if(coefN<=1e-12){ impossible=true; cap=0; }
@@ -636,11 +642,11 @@ function compute(p){
 /*CALC_END*/
 
 (function(){
-  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,months:36,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,netTarget:1000,ownTarget:5000,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpMonths:24};
+  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,months:36,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,netTarget:1000,ownTarget:5000,pctTarget:10,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpMonths:24};
   var FIELDS={
     amount:{min:0.01,max:1e10,dec:0}, certRate:{min:0,max:100,dec:2}, loanRate:{min:0,max:100,dec:2},
     months:{min:1,max:360,dec:0}, ltv:{min:80,max:100,dec:1}, maxCerts:{min:1,max:10,dec:0},
-    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0}, netTarget:{min:0,max:1e9,dec:0}, ownTarget:{min:0,max:1e9,dec:0},
+    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0}, netTarget:{min:0,max:1e9,dec:0}, ownTarget:{min:0,max:1e9,dec:0}, pctTarget:{min:0,max:1000,dec:2},
     feePct:{min:0,max:20,dec:2}, feeFix:{min:0,max:1e9,dec:0}, maxLoan:{min:0,max:1e10,dec:0}, cmpMonths:{min:1,max:360,dec:0}
   };
   var KEY='cert-plan-v1';
@@ -656,7 +662,7 @@ function compute(p){
           if(!(k in raw)) continue;
           if(k==='name'){ if(typeof raw.name==='string') s.name=raw.name.slice(0,60); }
           else if(k==='solve'){ s.solve=raw.solve===true; }
-          else if(k==='mode'){ if(['ratio','loan','diff','net','own'].indexOf(raw.mode)>-1) s.mode=raw.mode; }
+          else if(k==='mode'){ if(['ratio','loan','diff','net','own','pct'].indexOf(raw.mode)>-1) s.mode=raw.mode; }
           else if(typeof raw[k]==='number' && isFinite(raw[k]) && raw[k]>=FIELDS[k].min && raw[k]<=FIELDS[k].max) s[k]=raw[k];
         }
       }
@@ -697,7 +703,7 @@ function compute(p){
     });
     el.addEventListener('focus',function(){ el.select(); });
   });
-  var SL={amount:[10000,20000000,10000,10000],certRate:[12,30,.25,.25],loanRate:[0,40,.25,.25],months:[6,120,1,1],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,100000,500,500],netTarget:[0,30000,250,250],ownTarget:[0,100000,500,500],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpMonths:[6,120,1,1]};
+  var SL={amount:[10000,20000000,10000,10000],certRate:[12,30,.25,.25],loanRate:[0,40,.25,.25],months:[6,120,1,1],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,100000,500,500],netTarget:[0,30000,250,250],ownTarget:[0,100000,500,500],pctTarget:[0,100,.25,.25],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpMonths:[6,120,1,1]};
   var sliders={};
   Object.keys(SL).forEach(function(key){
     var cfg=SL[key], box=$('#fld-'+key), inp=box.querySelector('.inp'), el=$('#'+key);
@@ -782,7 +788,7 @@ function compute(p){
   function td(v,cls){ return '<td class="num'+(cls?' '+cls:'')+'">'+v+'</td>'; }
   function render(){
     var R=compute(state), t=R.tot;
-    var canSolve=state.mode!=='ratio', solving=canSolve&&state.solve;
+    var canSolve=state.mode!=='ratio'&&state.mode!=='pct', solving=canSolve&&state.solve;
     $('#fld-solve').hidden=!canSolve; $('#solve').checked=!!state.solve;
     Object.keys(sliders).forEach(function(k){ if(document.activeElement!==sliders[k]) sliders[k].value=state[k]; });
     var amtEl=$('#amount');
@@ -796,11 +802,13 @@ function compute(p){
     $('#fld-diffTarget').hidden=state.mode!=='diff';
     $('#fld-netTarget').hidden=state.mode!=='net';
     $('#fld-ownTarget').hidden=state.mode!=='own';
+    $('#fld-pctTarget').hidden=state.mode!=='pct';
     $('#ltvLabel').textContent=state.mode==='ratio'?'نسبة القرض من قيمة الشهادة':'أقصى نسبة قرض من الشهادة';
     $('#modeHint').textContent={
       ratio:'كل شهادة بتاخد قرض بنسبة ثابتة لحد أقصى عدد شهادات.',
       loan:'اكتب إجمالي القرض اللي محتاجه والملف يوزعه على الشهادات ويحسب النسب.',
       diff:'اكتب الفرق الشهري اللي عايز تدفعه والملف يحسب القرض المطلوب ويوزعه.',
+      pct:'اكتب نسبة صافي الربح اللي عايزها من مبلغك (على المدة كلها) والملف يحسب القرض المطلوب ويوزعه.',
       own:'اكتب الرقم اللي عايزه (فايدة شهادتك الأولى ناقص الفرق الشهري) والملف يحسب القرض المطلوب ويوزعه.',
       net:'اكتب صافي الربح الشهري اللي عايزه والملف يحسب القرض المطلوب ويوزعه.'
     }[state.mode];
@@ -877,10 +885,10 @@ function compute(p){
     }
     if(p.mode==='own' && R.ownExceeded) return {warn:true,text:'الرقم ده أكبر من فايدة شهادتك الأولى نفسها ('+fmtPlain(R.A*p.certRate/1200)+' في الشهر): مفيش قرض اتفتح.'};
     if(R.impossible && p.mode==='own') return {warn:true,text:'الرقم ده مش ممكن بالفوايد دي.'};
-    if(R.impossible && p.mode==='net') return {warn:true,text:'الربح الشهري ده مش ممكن بالفوايد دي: القرض مش بيكسب بعد فايدته ورسومه.'};
+    if(R.impossible && (p.mode==='net'||p.mode==='pct')) return {warn:true,text:'الربح ده مش ممكن بالفوايد دي: القرض مش بيكسب بعد فايدته ورسومه.'};
     if(R.impossible) return {warn:true,text:'الفرق الشهري ده مش ممكن بالفوايد دي: القسط أقل من فايدة الشهادة.'};
     if(p.mode==='ratio') return {warn:false,text:'كل شهادة بقرض '+fmtField(p.ltv,1)+'% لحد '+R.count+' شهادات.'};
-    var what=p.mode==='loan'?'القرض المطلوب':(p.mode==='net'?'الربح الشهري المطلوب':(p.mode==='own'?'الرقم المطلوب':'الفرق المطلوب'));
+    var what=p.mode==='loan'?'القرض المطلوب':(p.mode==='net'?'الربح الشهري المطلوب':(p.mode==='own'?'الرقم المطلوب':(p.mode==='pct'?'النسبة المطلوبة':'الفرق المطلوب')));
     if(R.exceeded) return {warn:true,text:what+' أكبر من الممكن بنسبة '+fmtField(p.ltv,1)+'% وعدد الشهادات ده: اتحسب أقصى قرض ممكن ('+fmtPlain(R.used)+').'};
     if(R.used<1) return {warn:true,text:what+' أقل من اللي ممكن: مفيش قرض اتفتح.'};
     var last=R.rows[R.rows.length-1], full=last.ratio!==null && last.ratio>=p.ltv/100-1e-9;

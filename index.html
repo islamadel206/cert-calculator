@@ -269,7 +269,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 .status{padding:9px 14px;font-size:13.5px}
 .stack{gap:8px}
 .cmp{display:grid;gap:8px}
-.cmp-row{grid-template-columns:130px 1fr 80px}
+.cmp-row{grid-template-columns:165px 1fr 80px}
 .folds{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
 .folds .fold[open]{grid-column:1/-1}
 .folds .fold>summary{padding:13px 16px;font-size:14px}
@@ -306,7 +306,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
       <section class="panel flat" aria-label="المدخلات">
     <div class="fields">
 <div class="field full" id="fld-amount">
-          <label for="amount">المبلغ اللي هتفتح بيه أول شهادة</label>
+          <label for="amount">مبلغك (أول شهادة)</label>
           <div class="inp"><input id="amount" name="amount" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه</span></div>
           <span class="err">اكتب رقم أكبر من صفر</span>
         </div>
@@ -316,12 +316,12 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
           <span class="err">من 0 لـ 100</span>
         </div>
 <div class="field" id="fld-loanRate">
-          <label for="loanRate">فايدة القرض (سنويًا، متناقصة)</label>
+          <label for="loanRate">فايدة القرض (سنويًا)</label>
           <div class="inp"><input id="loanRate" name="loanRate" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
           <span class="err">من 0 لـ 100</span>
         </div>
 <div class="field" id="fld-months">
-          <label for="months">المدة بالشهور</label>
+          <label for="months">المدة (بالشهور)</label>
           <div class="inp">
             <button class="step" type="button" data-for="months" data-step="-1" aria-label="نقص شهر">−</button>
             <input id="months" name="months" inputmode="numeric" autocomplete="off" spellcheck="false">
@@ -347,55 +347,55 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
         </div>
     </div>
     <div class="mode">
-      <span class="lbl" id="modeLbl" style="font-size:13px;font-weight:700;color:var(--muted)">إزاي تحدد القرض؟</span>
+      <span class="lbl" id="modeLbl" style="font-size:13px;font-weight:700;color:var(--muted)">الهدف: إيه اللي عايز تثبته؟</span>
       <div class="seg" role="radiogroup" aria-labelledby="modeLbl">
-        <label><input type="radio" name="mode" value="ratio"><span>بنسبة ثابتة</span></label>
-        <label><input type="radio" name="mode" value="loan"><span>قرض مطلوب</span></label>
-        <label><input type="radio" name="mode" value="diff"><span>فرق شهري مستهدف</span></label>
-        <label><input type="radio" name="mode" value="net"><span>ربح شهري مستهدف</span></label>
-        <label><input type="radio" name="mode" value="pct"><span>نسبة ربح مستهدفة</span></label>
-        <label><input type="radio" name="mode" value="own"><span>فايدة شهادتك ناقص الفرق</span></label>
+        <label><input type="radio" name="mode" value="ratio"><span>نسبة القرض</span></label>
+        <label><input type="radio" name="mode" value="loan"><span>قيمة القرض</span></label>
+        <label><input type="radio" name="mode" value="diff"><span>الفرق الشهري</span></label>
+        <label><input type="radio" name="mode" value="net"><span>الربح الشهري</span></label>
+        <label><input type="radio" name="mode" value="pct"><span>نسبة الربح</span></label>
+        <label><input type="radio" name="mode" value="own"><span>الباقي من فايدتك</span></label>
       </div>
       <p class="hint" id="modeHint"></p>
       <div class="fields">
 <div class="field" id="fld-loanTarget" hidden>
-          <label for="loanTarget">إجمالي القرض اللي محتاجه</label>
+          <label for="loanTarget">إجمالي القرض المطلوب</label>
           <div class="inp"><input id="loanTarget" name="loanTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه</span></div>
           <span class="err">اكتب رقم موجب</span>
         </div>
 <div class="field" id="fld-diffTarget" hidden>
-          <label for="diffTarget">الفرق الشهري اللي عايز تدفعه من جيبك</label>
+          <label for="diffTarget">الفرق الشهري المطلوب (من جيبك)</label>
           <div class="inp"><input id="diffTarget" name="diffTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
           <span class="err">اكتب رقم صحيح</span>
         </div>
 <div class="field" id="fld-netTarget" hidden>
-          <label for="netTarget">صافي الربح الشهري (متوسط) اللي عايزه</label>
+          <label for="netTarget">متوسط الربح الشهري المطلوب</label>
           <div class="inp"><input id="netTarget" name="netTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
           <span class="err">اكتب رقم صحيح</span>
         </div>
 <div class="field" id="fld-pctTarget" hidden>
-          <label for="pctTarget">نسبة صافي الربح من مبلغك (على المدة كلها)</label>
+          <label for="pctTarget">نسبة الربح المطلوبة من مبلغك (على المدة كلها)</label>
           <div class="inp"><input id="pctTarget" name="pctTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
           <span class="err">اكتب رقم صحيح</span>
         </div>
 <div class="field" id="fld-ownTarget" hidden>
-          <label for="ownTarget">فايدة شهادتك الأولى ناقص الفرق الشهري (اللي عايزه)</label>
+          <label for="ownTarget">الباقي المطلوب من فايدة شهادتك الأولى بعد الفرق (شهريًا)</label>
           <div class="inp"><input id="ownTarget" name="ownTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
           <span class="err">اكتب رقم صحيح</span>
         </div>
       </div>
-      <label class="chk" id="fld-solve" hidden><input type="checkbox" id="solve"><span>احسب فلوسي أنا تلقائيًا<small>من غير ما أكتب المبلغ: الشهادة الأولى بتتحسب عشان توصل للرقم اللي حددته</small></span></label>
+      <label class="chk" id="fld-solve" hidden><input type="checkbox" id="solve"><span>احسب مبلغي تلقائيًا<small>مش لازم تكتب المبلغ: الشهادة الأولى بتتحسب عشان توصل للهدف اللي حددته</small></span></label>
     </div>
     <details class="adv">
           <summary>المزيد: رسوم وسقف القرض</summary>
           <div class="fields" style="margin-top:12px">
             <div class="field" id="fld-feePct">
-              <label for="feePct">رسوم القرض (نسبة)</label>
+              <label for="feePct">رسوم القرض (% من القرض)</label>
               <div class="inp"><input id="feePct" name="feePct" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">%</span></div>
               <span class="err">من 0 لـ 20</span>
             </div>
             <div class="field" id="fld-feeFix">
-              <label for="feeFix">رسوم ثابتة لكل قرض</label>
+              <label for="feeFix">رسوم ثابتة على كل قرض</label>
               <div class="inp"><input id="feeFix" name="feeFix" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه</span></div>
               <span class="err">اكتب رقم موجب</span>
             </div>
@@ -413,8 +413,8 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
     </aside>
     <div class="col-out">
       <section class="kpis" aria-label="ملخص النتيجة">
-    <div class="kpi main"><div class="k">اللي هيرجعلك في الآخر</div><div class="v num" id="rFinal"></div><div class="s">فلوسك + صافي الربح</div></div>
-    <div class="kpi"><div class="k">صافي الربح بعد المدة</div><div class="v num" id="rNet"></div><div class="s"><span class="pct num" id="rNetPct"></span><span id="rNetSub"></span></div></div>
+    <div class="kpi main"><div class="k">إجمالي اللي هيرجعلك</div><div class="v num" id="rFinal"></div><div class="s">مبلغك + صافي الربح</div></div>
+    <div class="kpi"><div class="k">صافي الربح (بعد المدة)</div><div class="v num" id="rNet"></div><div class="s"><span class="pct num" id="rNetPct"></span><span id="rNetSub"></span></div></div>
     <div class="kpi diff"><div class="k">الفرق الشهري من جيبك</div><div class="v num" id="rDiff"></div><div class="s">جنيه / شهر</div></div>
   </section>
 
@@ -423,14 +423,14 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 
   
       <section class="panel" aria-label="تفاصيل النتيجة">
-        <h3 class="ph">كل شهر</h3>
+        <h3 class="ph">شهريًا</h3>
         <div class="stats">
       <div class="stat c-cert"><div class="k">فايدة كل الشهادات</div><div class="v num" id="rAllM"></div></div>
-      <div class="stat c-cert"><div class="k">منها فايدة شهادتك الأولى</div><div class="v num" id="rOwnM"></div></div>
-      <div class="stat c-cert"><div class="k">فايدة شهر شهادات القروض</div><div class="v num" id="rLoanM"></div></div>
-      <div class="stat c-loan"><div class="k">القسط للبنك (كل القروض)</div><div class="v num" id="rPmt"></div></div>
-      <div class="stat"><div class="k">فايدة شهادتك الأولى ناقص الفرق الشهري</div><div class="v num" id="rPmtOwn"></div></div>
-      <div class="stat ok"><div class="k">صافي الربح في الشهر (متوسط)</div><div class="v num" id="rNetM"></div></div>
+      <div class="stat c-cert"><div class="k">منها: شهادتك الأولى</div><div class="v num" id="rOwnM"></div></div>
+      <div class="stat c-cert"><div class="k">منها: شهادات القروض</div><div class="v num" id="rLoanM"></div></div>
+      <div class="stat c-loan"><div class="k">قسط البنك الشهري</div><div class="v num" id="rPmt"></div></div>
+      <div class="stat"><div class="k">الباقي من فايدة شهادتك بعد الفرق</div><div class="v num" id="rPmtOwn"></div></div>
+      <div class="stat ok"><div class="k">متوسط الربح الشهري</div><div class="v num" id="rNetM"></div></div>
     </div>
   
         <h3 class="ph" style="margin-top:14px">القروض</h3>
@@ -441,15 +441,15 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
     </div>
     <button class="more-btn" type="button" id="moreStats" aria-expanded="false">تفاصيل أكتر ▾</button>
     <div class="stats" id="statsMore" hidden>
-      <div class="stat"><div class="k">إجمالي اللي هتدفعه على المدة (بيرجع لك)</div><div class="v num" id="rPaid"></div></div>
+      <div class="stat"><div class="k">إجمالي دفعك من جيبك على المدة</div><div class="v num" id="rPaid"></div></div>
       <div class="stat"><div class="k">رسوم القروض (مقدمًا)</div><div class="v num" id="rFees"></div></div>
-      <div class="stat ok"><div class="k">فايدة التعادل للقرض (سنويًا)</div><div class="v num" id="rBE"></div></div>
+      <div class="stat ok"><div class="k">أقصى فايدة قرض قبل الخسارة (سنويًا)</div><div class="v num" id="rBE"></div></div>
     </div>
   
         <h3 class="ph" style="margin-top:14px">اللف مقابل شهادة واحدة</h3>
         <div class="cmp">
     <div class="cmp-row"><span>ربح اللف</span><div class="bar"><i class="a" id="bA"></i></div><span class="val num" id="vA"></span></div>
-    <div class="cmp-row"><span>فايدة شهادتك لوحدها</span><div class="bar"><i class="b" id="bB"></i></div><span class="val num" id="vB"></span></div>
+    <div class="cmp-row"><span>شهادة واحدة (بدون لف)</span><div class="bar"><i class="b" id="bB"></i></div><span class="val num" id="vB"></span></div>
     <p class="cmp-note" id="cmpNote"></p>
   </div>
       </section>
@@ -488,7 +488,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
     <summary>المزيد: مقارنة مدتين بنفس باقي الإعدادات</summary>
     <div class="cmp-top" style="margin-top:12px">
       <div class="field" id="fld-cmpMonths">
-        <label for="cmpMonths">مدة المقارنة</label>
+        <label for="cmpMonths">مدة المقارنة (بالشهور)</label>
         <div class="inp"><input id="cmpMonths" name="cmpMonths" inputmode="numeric" autocomplete="off" spellcheck="false"><span class="unit">شهر</span></div>
         <span class="err">من 1 لـ 360 شهر</span>
       </div>
@@ -509,9 +509,9 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
     <ul>
       <li>القرض بيتسدد بأقساط شهرية متساوية (أصل + فايدة) على نفس مدة الشهادة، والفايدة بتتحسب على الباقي من القرض.</li>
       <li>كل الشهادات والقروض بتتفتح في نفس اليوم وبتنتهي مع بعض، وفلوس كل قرض بتدخل في الشهادة اللي بعدها.</li>
-      <li>الفرق الشهري = القسط الشهري ناقص فايدة الشهادة اللي اشتريتها بالقرض. فايدة شهادتك الأولى (فلوسك) مش داخلة فيه. الرقم الموجب بتدفعه من جيبك، والرقم بين قوسين بيفضل لك.</li>
-      <li>في آخر المدة بتقفل الشهادات وبترجع قيمتها كلها، فالقروض بتتسدد وفلوسك الأولى بترجع.</li>
-      <li>صافي الربح بيحسب من الشهادات اللي اشتريتها بالقروض ناقص فايدة القروض، من غير فايدة شهادتك الأولى (فلوسك).</li>
+      <li>الفرق الشهري = القسط الشهري ناقص فايدة الشهادة اللي اشتريتها بالقرض. فايدة شهادتك الأولى (مبلغك) مش داخلة فيه. الرقم الموجب بتدفعه من جيبك، والرقم بين قوسين بيفضل لك.</li>
+      <li>في آخر المدة بتقفل الشهادات وبترجع قيمتها كلها، فالقروض بتتسدد ومبلغك الأول بيرجع.</li>
+      <li>صافي الربح بيحسب من الشهادات اللي اشتريتها بالقروض ناقص فايدة القروض، من غير فايدة شهادتك الأولى (مبلغك).</li>
       <li>الأرقام قبل أي رسوم أو مصاريف إدارية أو ضرايب. اتأكد من نسبة القرض وفايدته من البنك، والقرار ليك.</li>
     </ul>
   </details>
@@ -770,7 +770,7 @@ function compute(p){
         +'<dt>صافي الربح</dt><dd class="num">'+fmtPlain(R.net)+'</dd>'
         +'<dt>الفرق الشهري من جيبك</dt><dd class="num">'+(R.diffM>0.5?fmtPlain(R.diffM):'-')+'</dd>'
         +'<dt>ربح كل جنيه بتدفعه</dt><dd class="num">'+(o.val===Infinity?'بدون دفع':fmtField(o.val,2))+'</dd>'
-        +'<dt>فلوسك</dt><dd class="num">'+fmtPlain(R.A)+'</dd></dl>'
+        +'<dt>مبلغك</dt><dd class="num">'+fmtPlain(R.A)+'</dd></dl>'
         +(same?'<span class="hint">ده نظامك الحالي</span>':'<button type="button" class="btn" data-i="'+i+'">طبّق النظام ده</button>')+'</div>';
     }).join('');
     box.querySelectorAll('button[data-i]').forEach(function(b){
@@ -796,7 +796,7 @@ function compute(p){
     document.querySelectorAll('.step[data-for=amount]').forEach(function(b){ b.disabled=solving; });
     if(solving){ amtEl.value=fmtField(Math.round(R.A),0); sliders.amount.value=Math.min(20000000,Math.max(10000,R.A)); }
     else if(document.activeElement!==amtEl){ amtEl.value=fmtField(state.amount,0); }
-    $('#fld-amount').querySelector('label').textContent=solving?'فلوسك (اتحسبت تلقائيًا)':'المبلغ اللي هتفتح بيه أول شهادة';
+    $('#fld-amount').querySelector('label').textContent=solving?'مبلغك (اتحسب تلقائيًا)':'مبلغك (أول شهادة)';
     $('#monthsRead').textContent='= '+fmtField(R.T/12,2)+' سنة';
     $('#fld-loanTarget').hidden=state.mode!=='loan';
     $('#fld-diffTarget').hidden=state.mode!=='diff';
@@ -805,18 +805,18 @@ function compute(p){
     $('#fld-pctTarget').hidden=state.mode!=='pct';
     $('#ltvLabel').textContent=state.mode==='ratio'?'نسبة القرض من قيمة الشهادة':'أقصى نسبة قرض من الشهادة';
     $('#modeHint').textContent={
-      ratio:'كل شهادة بتاخد قرض بنسبة ثابتة لحد أقصى عدد شهادات.',
-      loan:'اكتب إجمالي القرض اللي محتاجه والملف يوزعه على الشهادات ويحسب النسب.',
-      diff:'اكتب الفرق الشهري اللي عايز تدفعه والملف يحسب القرض المطلوب ويوزعه.',
-      pct:'اكتب نسبة صافي الربح اللي عايزها من مبلغك (على المدة كلها) والملف يحسب القرض المطلوب ويوزعه.',
-      own:'اكتب الرقم اللي عايزه (فايدة شهادتك الأولى ناقص الفرق الشهري) والملف يحسب القرض المطلوب ويوزعه.',
-      net:'اكتب صافي الربح الشهري اللي عايزه والملف يحسب القرض المطلوب ويوزعه.'
+      ratio:'كل شهادة بتاخد قرض بنسبة ثابتة من قيمتها، لحد أقصى عدد شهادات.',
+      loan:'اكتب إجمالي القرض اللي محتاجه، والصفحة توزعه على الشهادات وتحسب النسب.',
+      diff:'اكتب الفرق الشهري اللي عايز تدفعه من جيبك، والصفحة تحسب القرض المطلوب وتوزعه.',
+      net:'اكتب متوسط الربح الشهري اللي عايزه، والصفحة تحسب القرض المطلوب وتوزعه.',
+      pct:'اكتب نسبة الربح اللي عايزها من مبلغك على المدة كلها، والصفحة تحسب القرض المطلوب وتوزعه.',
+      own:'اكتب الباقي اللي عايزه من فايدة شهادتك الأولى بعد خصم الفرق الشهري، والصفحة تحسب القرض المطلوب وتوزعه.'
     }[state.mode];
 
     $('#rFinal').textContent=fmtPlain(R.final);
     $('#rNet').textContent=fmtPlain(R.net);
     $('#rNetPct').textContent=R.A>0?fmtField(R.net/R.A*100,2)+'%':'-';
-    $('#rNetSub').textContent='على '+R.T+' شهر، من غير فايدة فلوسك';
+    $('#rNetSub').textContent='على '+R.T+' شهر، من غير فايدة مبلغك';
     $('#rDiff').textContent=R.diffM>=0.5?fmtPlain(R.diffM):(R.diffM<=-0.5?'('+fmtPlain(-R.diffM)+')':'-');
     $('#rPaid').textContent=fmt(R.paid);
     $('#rLoans').textContent=fmt(R.used);
@@ -835,7 +835,7 @@ function compute(p){
     var R2=compute(Object.assign({},state,{months:state.cmpMonths}));
     $('#cmpH1').textContent='المدة الحالية ('+state.months+' شهر)';
     $('#cmpH2').textContent='مدة المقارنة ('+state.cmpMonths+' شهر)';
-    var mrows=[['فلوسك',R.A,R2.A,0],['إجمالي القروض',R.used,R2.used,0],['عدد الشهادات',R.count,R2.count,0],
+    var mrows=[['مبلغك',R.A,R2.A,0],['إجمالي القروض',R.used,R2.used,0],['عدد الشهادات',R.count,R2.count,0],
       ['الفرق الشهري من جيبك',R.diffM,R2.diffM,-1],['إجمالي اللي هتدفعه من جيبك',R.paid,R2.paid,-1],['رسوم القروض',R.tot.fee,R2.tot.fee,-1],
       ['صافي الربح',R.net,R2.net,1],['اللي هيرجعلك في الآخر',R.final,R2.final,1]];
     $('#cmpBody').innerHTML=mrows.map(function(m){
@@ -860,7 +860,7 @@ function compute(p){
     var h='';
     R.rows.forEach(function(r){
       var dcls=r.diffM>0.5?'pos':(r.diffM<-0.5?'neg':'');
-      h+='<tr><td class="s1 num">'+r.n+'</td><td class="s2"><span class="pill '+(r.own?'own">فلوسك':'loan">قرض')+'</span></td>'
+      h+='<tr><td class="s1 num">'+r.n+'</td><td class="s2"><span class="pill '+(r.own?'own">مبلغك':'loan">قرض')+'</span></td>'
         +td(fmtPlain(r.cert),'sep')+td(fmtPlain(r.certM))+td(fmtPlain(r.certT))
         +td(r.ratio===null?'-':(Math.round(r.ratio*1000)/10)+'%','sep')+td(fmt(r.loan))+td(fmt(r.int1))+td(fmt(r.princ))+td(fmt(r.pmt))+td(fmt(r.loanInt))+td(fmt(r.fee))
         +td(fmt(r.diffM),'sep '+dcls)+td(fmt(r.diffT),dcls)+td(fmt(r.net),'bold')+'</tr>';
@@ -881,7 +881,7 @@ function compute(p){
     if(R.solved){
       if(R.impossible&&p.mode==='own') return {warn:true,text:'مع قروض بالنسبة الكاملة الرقم ده مش ممكن: حدد سقف للقرض الواحد من "رسوم وسقف القرض" عشان المبلغ يتحسب.'};
       if(R.impossible) return {warn:true,text:'مفيش مبلغ يحقق الرقم ده بالفوايد وعدد الشهادات دي.'};
-      return {warn:false,text:'فلوسك اتحسبت: '+fmtPlain(R.A)+' جنيه، وقرض '+fmtPlain(R.used)+' اتوزع على '+R.count+' شهادات.'};
+      return {warn:false,text:'مبلغك اتحسب: '+fmtPlain(R.A)+' جنيه، وقرض '+fmtPlain(R.used)+' اتوزع على '+R.count+' شهادات.'};
     }
     if(p.mode==='own' && R.ownExceeded) return {warn:true,text:'الرقم ده أكبر من فايدة شهادتك الأولى نفسها ('+fmtPlain(R.A*p.certRate/1200)+' في الشهر): مفيش قرض اتفتح.'};
     if(R.impossible && p.mode==='own') return {warn:true,text:'الرقم ده مش ممكن بالفوايد دي.'};

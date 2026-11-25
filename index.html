@@ -288,6 +288,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
   .fields{grid-template-columns:1fr 1fr}
 }
 @media (max-width:480px){.fields{grid-template-columns:1fr}}
+.seg label:last-child:nth-child(odd){grid-column:1/-1}
 </style>
 </head>
 <body>
@@ -351,6 +352,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
         <label><input type="radio" name="mode" value="loan"><span>قرض مطلوب</span></label>
         <label><input type="radio" name="mode" value="diff"><span>فرق شهري مستهدف</span></label>
         <label><input type="radio" name="mode" value="net"><span>ربح شهري مستهدف</span></label>
+        <label><input type="radio" name="mode" value="own"><span>فايدة شهادتك ناقص الفرق</span></label>
       </div>
       <p class="hint" id="modeHint"></p>
       <div class="fields">
@@ -367,6 +369,11 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 <div class="field" id="fld-netTarget" hidden>
           <label for="netTarget">صافي الربح الشهري (متوسط) اللي عايزه</label>
           <div class="inp"><input id="netTarget" name="netTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
+          <span class="err">اكتب رقم صحيح</span>
+        </div>
+<div class="field" id="fld-ownTarget" hidden>
+          <label for="ownTarget">فايدة شهادتك الأولى ناقص الفرق الشهري (اللي عايزه)</label>
+          <div class="inp"><input id="ownTarget" name="ownTarget" inputmode="decimal" autocomplete="off" spellcheck="false"><span class="unit">جنيه / شهر</span></div>
           <span class="err">اكتب رقم صحيح</span>
         </div>
       </div>
@@ -533,7 +540,8 @@ function compute(p){
     }
     return {certs:certs,loans:loans,used:used};
   }
-  var A=p.amount, cap=null, impossible=false, solved=false, netExceeded=false;
+  var A=p.amount, cap=null, impossible=false, solved=false, netExceeded=false, ownExceeded=false;
+  var tOwn=p.ownTarget||0;
   var coefN=c*T-gU-feeP, tNet=(p.netTarget||0)*T;
   function netOf(ch){ return ch.used*coefN-ch.loans.length*feeF; }
   if(p.solve && p.mode==='net'){
@@ -544,6 +552,17 @@ function compute(p){
       while(netOf(chain(hn,null))<tNet && hn<1e15) hn*=2;
       if(netOf(chain(hn,null))<tNet-1e-6){ impossible=true; A=0; }
       else { var ln=0, itn; for(itn=0;itn<200;itn++){ var mn=(ln+hn)/2; if(netOf(chain(mn,null))<tNet) ln=mn; else hn=mn; } A=hn; }
+    }
+  }
+  else if(p.solve && p.mode==='own'){
+    solved=true;
+    var hOwn=function(a){ return a*c-(f-c)*chain(a,null).used; };
+    if(N<2||!(tOwn>0)){ impossible=true; A=0; }
+    else {
+      var ho=1;
+      while(hOwn(ho)<tOwn && ho<1e15) ho*=2;
+      if(hOwn(ho)<tOwn-1e-6){ impossible=true; A=0; }
+      else { var lo2=0, ito; for(ito=0;ito<200;ito++){ var mo=(lo2+ho)/2; if(hOwn(mo)<tOwn) lo2=mo; else ho=mo; } A=ho; }
     }
   }
   else if(p.solve && (p.mode==='loan'||p.mode==='diff')){
@@ -572,6 +591,10 @@ function compute(p){
     if(f-c<=1e-12){ impossible=true; cap=0; }
     else cap=Math.max(0,p.diffTarget/(f-c));
   }
+  else if(p.mode==='own'){
+    if(f-c<=1e-12){ impossible=true; cap=0; }
+    else { var rawCap=(A*c-tOwn)/(f-c); if(rawCap<0){ cap=0; ownExceeded=true; } else cap=rawCap; }
+  }
   else if(p.mode==='net'){
     var full=chain(A,null);
     if(!(tNet>0)||N<2){ cap=0; }
@@ -597,7 +620,7 @@ function compute(p){
     for(var k in tot) tot[k]+=row[k];
   }
   var maxPossible=chain(A,null).used;
-  var exceeded=netExceeded||(cap!==null && p.mode!=='net' && cap>maxPossible+1);
+  var exceeded=netExceeded||ownExceeded||(cap!==null && p.mode!=='net' && cap>maxPossible+1);
   var be=null;
   if(used>1e-9){
     var certInt=tot.certT-rows[0].certT;
@@ -606,17 +629,17 @@ function compute(p){
     else if(gUnit(3)<wg) be=300;
     else { var a=0,b=3,m2,n2; for(n2=0;n2<100;n2++){ m2=(a+b)/2; if(gUnit(m2)<wg) a=m2; else b=m2; } be=(a+b)/2*100; }
   }
-  return {T:T,f:f,rows:rows,tot:tot,count:certs.length,used:used,cap:cap,impossible:impossible,solved:solved,A:A,exceeded:exceeded,maxPossible:maxPossible,be:be,
+  return {T:T,f:f,rows:rows,tot:tot,count:certs.length,used:used,cap:cap,impossible:impossible,solved:solved,A:A,ownExceeded:ownExceeded,exceeded:exceeded,maxPossible:maxPossible,be:be,
     net:tot.net, final:A+tot.net, diffM:tot.diffM, paid:tot.diffM*Tp, TL:TL, Tp:Tp, single:A*c*T};
 }
 /*CALC_END*/
 
 (function(){
-  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,months:36,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,netTarget:1000,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpMonths:24};
+  var DEFAULTS={name:'خطة اللف بالشهادات',amount:500000,certRate:18.75,loanRate:20,months:36,ltv:90,maxCerts:10,mode:'diff',loanTarget:500000,diffTarget:3000,netTarget:1000,ownTarget:5000,solve:false,feePct:0,feeFix:0,maxLoan:0,cmpMonths:24};
   var FIELDS={
     amount:{min:0.01,max:1e10,dec:0}, certRate:{min:0,max:100,dec:2}, loanRate:{min:0,max:100,dec:2},
     months:{min:1,max:360,dec:0}, ltv:{min:80,max:100,dec:1}, maxCerts:{min:1,max:10,dec:0},
-    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0}, netTarget:{min:0,max:1e9,dec:0},
+    loanTarget:{min:0,max:1e10,dec:0}, diffTarget:{min:-1e9,max:1e9,dec:0}, netTarget:{min:0,max:1e9,dec:0}, ownTarget:{min:0,max:1e9,dec:0},
     feePct:{min:0,max:20,dec:2}, feeFix:{min:0,max:1e9,dec:0}, maxLoan:{min:0,max:1e10,dec:0}, cmpMonths:{min:1,max:360,dec:0}
   };
   var KEY='cert-plan-v1';
@@ -632,7 +655,7 @@ function compute(p){
           if(!(k in raw)) continue;
           if(k==='name'){ if(typeof raw.name==='string') s.name=raw.name.slice(0,60); }
           else if(k==='solve'){ s.solve=raw.solve===true; }
-          else if(k==='mode'){ if(['ratio','loan','diff','net'].indexOf(raw.mode)>-1) s.mode=raw.mode; }
+          else if(k==='mode'){ if(['ratio','loan','diff','net','own'].indexOf(raw.mode)>-1) s.mode=raw.mode; }
           else if(typeof raw[k]==='number' && isFinite(raw[k]) && raw[k]>=FIELDS[k].min && raw[k]<=FIELDS[k].max) s[k]=raw[k];
         }
       }
@@ -673,7 +696,7 @@ function compute(p){
     });
     el.addEventListener('focus',function(){ el.select(); });
   });
-  var SL={amount:[10000,20000000,10000,10000],certRate:[12,30,.25,.25],loanRate:[0,40,.25,.25],months:[6,120,1,1],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,100000,500,500],netTarget:[0,30000,250,250],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpMonths:[6,120,1,1]};
+  var SL={amount:[10000,20000000,10000,10000],certRate:[12,30,.25,.25],loanRate:[0,40,.25,.25],months:[6,120,1,1],ltv:[80,100,1,1],maxCerts:[1,10,1,1],loanTarget:[0,5000000,10000,10000],diffTarget:[0,100000,500,500],netTarget:[0,30000,250,250],ownTarget:[0,100000,500,500],feePct:[0,5,.25,.25],feeFix:[0,20000,250,250],maxLoan:[0,5000000,50000,50000],cmpMonths:[6,120,1,1]};
   var sliders={};
   Object.keys(SL).forEach(function(key){
     var cfg=SL[key], box=$('#fld-'+key), inp=box.querySelector('.inp'), el=$('#'+key);
@@ -771,11 +794,13 @@ function compute(p){
     $('#fld-loanTarget').hidden=state.mode!=='loan';
     $('#fld-diffTarget').hidden=state.mode!=='diff';
     $('#fld-netTarget').hidden=state.mode!=='net';
+    $('#fld-ownTarget').hidden=state.mode!=='own';
     $('#ltvLabel').textContent=state.mode==='ratio'?'نسبة القرض من قيمة الشهادة':'أقصى نسبة قرض من الشهادة';
     $('#modeHint').textContent={
       ratio:'كل شهادة بتاخد قرض بنسبة ثابتة لحد أقصى عدد شهادات.',
       loan:'اكتب إجمالي القرض اللي محتاجه والملف يوزعه على الشهادات ويحسب النسب.',
       diff:'اكتب الفرق الشهري اللي عايز تدفعه والملف يحسب القرض المطلوب ويوزعه.',
+      own:'اكتب الرقم اللي عايزه (فايدة شهادتك الأولى ناقص الفرق الشهري) والملف يحسب القرض المطلوب ويوزعه.',
       net:'اكتب صافي الربح الشهري اللي عايزه والملف يحسب القرض المطلوب ويوزعه.'
     }[state.mode];
 
@@ -844,13 +869,16 @@ function compute(p){
     var p=state;
     if(Math.floor(p.maxCerts)<2) return {warn:true,text:'مع شهادة واحدة مفيش قرض: زوّد أقصى عدد شهادات.'};
     if(R.solved){
+      if(R.impossible&&p.mode==='own') return {warn:true,text:'مع قروض بالنسبة الكاملة الرقم ده مش ممكن: حدد سقف للقرض الواحد من "رسوم وسقف القرض" عشان المبلغ يتحسب.'};
       if(R.impossible) return {warn:true,text:'مفيش مبلغ يحقق الرقم ده بالفوايد وعدد الشهادات دي.'};
       return {warn:false,text:'فلوسك اتحسبت: '+fmtPlain(R.A)+' جنيه، وقرض '+fmtPlain(R.used)+' اتوزع على '+R.count+' شهادات.'};
     }
+    if(p.mode==='own' && R.ownExceeded) return {warn:true,text:'الرقم ده أكبر من فايدة شهادتك الأولى نفسها ('+fmtPlain(R.A*p.certRate/1200)+' في الشهر): مفيش قرض اتفتح.'};
+    if(R.impossible && p.mode==='own') return {warn:true,text:'الرقم ده مش ممكن بالفوايد دي.'};
     if(R.impossible && p.mode==='net') return {warn:true,text:'الربح الشهري ده مش ممكن بالفوايد دي: القرض مش بيكسب بعد فايدته ورسومه.'};
     if(R.impossible) return {warn:true,text:'الفرق الشهري ده مش ممكن بالفوايد دي: القسط أقل من فايدة الشهادة.'};
     if(p.mode==='ratio') return {warn:false,text:'كل شهادة بقرض '+fmtField(p.ltv,1)+'% لحد '+R.count+' شهادات.'};
-    var what=p.mode==='loan'?'القرض المطلوب':(p.mode==='net'?'الربح الشهري المطلوب':'الفرق المطلوب');
+    var what=p.mode==='loan'?'القرض المطلوب':(p.mode==='net'?'الربح الشهري المطلوب':(p.mode==='own'?'الرقم المطلوب':'الفرق المطلوب'));
     if(R.exceeded) return {warn:true,text:what+' أكبر من الممكن بنسبة '+fmtField(p.ltv,1)+'% وعدد الشهادات ده: اتحسب أقصى قرض ممكن ('+fmtPlain(R.used)+').'};
     if(R.used<1) return {warn:true,text:what+' أقل من اللي ممكن: مفيش قرض اتفتح.'};
     var last=R.rows[R.rows.length-1], full=last.ratio!==null && last.ratio>=p.ltv/100-1e-9;

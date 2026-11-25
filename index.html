@@ -289,7 +289,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 }
 @media (max-width:480px){.fields{grid-template-columns:1fr}}
 .seg label:last-child:nth-child(odd){grid-column:1/-1}
-.pct{display:block;width:max-content;padding:1px 10px;margin:0 0 4px;border-radius:999px;background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:13px}
+.pct{display:block;width:max-content;max-width:100%;padding:1px 10px;margin:0 0 4px;border-radius:999px;background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:13px}
 </style>
 </head>
 <body>
@@ -414,7 +414,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
     <div class="col-out">
       <section class="kpis" aria-label="ملخص النتيجة">
     <div class="kpi main"><div class="k">إجمالي اللي هيرجعلك</div><div class="v num" id="rFinal"></div><div class="s">مبلغك + صافي الربح</div></div>
-    <div class="kpi"><div class="k">صافي الربح (بعد المدة)</div><div class="v num" id="rNet"></div><div class="s"><span class="pct num" id="rNetPct"></span><span id="rNetSub"></span></div></div>
+    <div class="kpi"><div class="k">صافي الربح (بعد المدة)</div><div class="v num" id="rNet"></div><div class="s"><span class="pct" id="rNetPct"></span><span class="pct" id="rLoanPct"></span><span id="rNetSub"></span></div></div>
     <div class="kpi diff"><div class="k">الفرق الشهري من جيبك</div><div class="v num" id="rDiff"></div><div class="s">جنيه / شهر</div></div>
   </section>
 
@@ -815,7 +815,8 @@ function compute(p){
 
     $('#rFinal').textContent=fmtPlain(R.final);
     $('#rNet').textContent=fmtPlain(R.net);
-    $('#rNetPct').textContent=R.A>0?fmtField(R.net/R.A*100,2)+'%':'-';
+    $('#rNetPct').innerHTML=R.A>0?'الربح <b class="num">'+fmtField(R.net/R.A*100,2)+'%</b> من مبلغك':'-';
+    $('#rLoanPct').innerHTML=R.A>0?'القروض + الربح <b class="num">'+fmtField((R.used+R.net)/R.A*100,2)+'%</b> من مبلغك':'-';
     $('#rNetSub').textContent='على '+R.T+' شهر، من غير فايدة مبلغك';
     $('#rDiff').textContent=R.diffM>=0.5?fmtPlain(R.diffM):(R.diffM<=-0.5?'('+fmtPlain(-R.diffM)+')':'-');
     $('#rPaid').textContent=fmt(R.paid);
@@ -906,7 +907,7 @@ function compute(p){
       'عدد الشهادات: '+R.count+' | إجمالي القروض: '+fmtPlain(R.used),
       'فايدة شهادتك الأولى في الشهر: '+fmtPlain(R.rows[0].certM)+' | فايدتها ناقص الفرق الشهري: '+fmtPlain(R.rows[0].certM-R.diffM)+'\n'+'القسط الشهري الكلي: '+fmtPlain(R.tot.pmt)+' | صافي الربح في الشهر: '+fmtPlain(R.net/R.T)+' | فايدة كل الشهادات في الشهر: '+fmtPlain(R.tot.certM)+' | فايدة شهر شهادات القروض: '+fmtPlain(R.tot.certM-R.rows[0].certM),
       'الفرق الشهري من جيبك: '+fmtPlain(R.diffM),
-      'صافي الربح: '+fmtPlain(R.net)+(R.A>0?' ('+fmtField(R.net/R.A*100,2)+'% من مبلغك)':'')+' | اللي هيرجعلك: '+fmtPlain(R.final),
+      'صافي الربح: '+fmtPlain(R.net)+(R.A>0?' ('+fmtField(R.net/R.A*100,2)+'% من مبلغك)':'')+(R.A>0?' | القروض + الربح: '+fmtPlain(R.used+R.net)+' ('+fmtField((R.used+R.net)/R.A*100,2)+'% من مبلغك)':'')+' | اللي هيرجعلك: '+fmtPlain(R.final),
       'رسوم القروض: '+fmtPlain(R.tot.fee)+' | فايدة التعادل للقرض: '+(R.be===null?'-':fmtField(R.be,2)+'%')+'\n'+'فايدة شهادتك الأولى لوحدها: '+fmtPlain(R.single)
     ].join('\n');
   }

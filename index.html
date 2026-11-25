@@ -290,6 +290,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 @media (max-width:480px){.fields{grid-template-columns:1fr}}
 .seg label:last-child:nth-child(odd){grid-column:1/-1}
 .pct{display:block;width:max-content;max-width:100%;padding:1px 10px;margin:0 0 4px;border-radius:999px;background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:13px}
+.cnote{font-size:11.5px;font-weight:400;color:var(--muted);margin-top:4px;line-height:1.5}
 .stat.wide{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .stat.wide .wide-pct{text-align:left;padding-inline-start:14px;border-inline-start:1px solid var(--line)}
 .stat.wide .pv{font-size:22px;font-weight:800;color:var(--accent)}
@@ -442,8 +443,8 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
       <div class="stat"><div class="k">إجمالي قيمة الشهادات</div><div class="v num" id="rCertTot"></div></div>
       <div class="stat"><div class="k">إجمالي القروض</div><div class="v num" id="rLoans"></div></div>
       <div class="stat"><div class="k">عدد الشهادات</div><div class="v num" id="rCount"></div></div>
-      <div class="stat wide"><div><div class="k">إجمالي القروض + صافي الربح</div><div class="v num" id="rLoanProfit"></div></div><div class="wide-pct"><div class="pv num" id="rLoanPctCard"></div><div class="pk">من مبلغك الأول</div></div></div>
-      <div class="stat wide"><div><div class="k">إجمالي القروض + صافي الربح − الشهادة الأولى</div><div class="v num" id="rLoanProfitNet"></div></div><div class="wide-pct"><div class="pv num" id="rLoanPctNet"></div><div class="pk">من مبلغك الأول</div></div></div>
+      <div class="stat wide"><div><div class="k">إجمالي القروض + الربح</div><div class="v num" id="rLoanProfit"></div><div class="cnote">مجموع القروض + صافي الربح (قبل خصم الشهادة الأولى)</div></div><div class="wide-pct"><div class="pv num" id="rLoanPctCard"></div><div class="pk">من مبلغك الأول</div></div></div>
+      <div class="stat wide"><div><div class="k">الصافي بعد استرداد الشهادة الأولى</div><div class="v num" id="rLoanProfitNet"></div><div class="cnote">الكارت اللي فوق − مبلغ شهادتك الأولى (فلوسك الأصلية)</div></div><div class="wide-pct"><div class="pv num" id="rLoanPctNet"></div><div class="pk">من مبلغك الأول</div></div></div>
     </div>
     <button class="more-btn" type="button" id="moreStats" aria-expanded="false">تفاصيل أكتر ▾</button>
     <div class="stats" id="statsMore" hidden>

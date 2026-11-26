@@ -290,6 +290,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
 @media (max-width:480px){.fields{grid-template-columns:1fr}}
 .seg label:last-child:nth-child(odd){grid-column:1/-1}
 .pct{display:block;width:max-content;max-width:100%;padding:1px 10px;margin:0 0 4px;border-radius:999px;background:rgba(255,255,255,.2);color:#fff;font-weight:800;font-size:13px}
+.wide-pct .pk{white-space:nowrap}.wide-pct .pk+.pk{margin-top:6px;padding-top:6px;border-top:1px dashed var(--line)}
 .cnote{font-size:11.5px;font-weight:400;color:var(--muted);margin-top:4px;line-height:1.5}
 .stat.wide{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .stat.wide .wide-pct{text-align:left;padding-inline-start:14px;border-inline-start:1px solid var(--line)}
@@ -443,7 +444,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
       <div class="stat"><div class="k">إجمالي قيمة الشهادات</div><div class="v num" id="rCertTot"></div></div>
       <div class="stat"><div class="k">إجمالي القروض</div><div class="v num" id="rLoans"></div></div>
       <div class="stat"><div class="k">عدد الشهادات</div><div class="v num" id="rCount"></div></div>
-      <div class="stat wide"><div><div class="k">إجمالي القروض + الربح</div><div class="v num" id="rLoanProfitNet"></div><div class="cnote">إجمالي ربح الشهادة الأولى: <b class="num" id="rCertTot2"></b></div></div><div class="wide-pct"><div class="pv num" id="rLoanPctNet"></div><div class="pk">من إجمالي الشهادات</div></div></div>
+      <div class="stat wide"><div><div class="k">إجمالي القروض + الربح</div><div class="v num" id="rLoanProfitNet"></div><div class="cnote">إجمالي ربح الشهادة الأولى: <b class="num" id="rCertTot2"></b></div></div><div class="wide-pct"><div class="pv num" id="rLoanPctNet"></div><div class="pk">من إجمالي الشهادات</div><div class="pk">صافي الربح: <b class="num" id="rNetAmt"></b></div></div></div>
     </div>
     <button class="more-btn" type="button" id="moreStats" aria-expanded="false">تفاصيل أكتر ▾</button>
     <div class="stats" id="statsMore" hidden>
@@ -824,6 +825,7 @@ function compute(p){
     $('#rNetPct').innerHTML=R.A>0?'الربح <b class="num">'+fmtField(R.net/R.A*100,2)+'%</b> من مبلغك':'-';
     $('#rLoanProfitNet').textContent=fmt(R.used+R.net);
     $('#rCertTot2').textContent=fmt(R.single);
+    $('#rNetAmt').textContent=fmt(R.net);
     $('#rLoanPctNet').textContent=R.tot.cert>0?fmtField((R.used+R.net)/R.tot.cert*100,2)+'%':'-';
     $('#rNetSub').textContent='على '+R.T+' شهر، من غير فايدة مبلغك';
     $('#rDiff').textContent=R.diffM>=0.5?fmtPlain(R.diffM):(R.diffM<=-0.5?'('+fmtPlain(-R.diffM)+')':'-');

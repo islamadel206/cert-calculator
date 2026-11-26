@@ -443,7 +443,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
       <div class="stat"><div class="k">إجمالي قيمة الشهادات</div><div class="v num" id="rCertTot"></div></div>
       <div class="stat"><div class="k">إجمالي القروض</div><div class="v num" id="rLoans"></div></div>
       <div class="stat"><div class="k">عدد الشهادات</div><div class="v num" id="rCount"></div></div>
-      <div class="stat wide"><div><div class="k">إجمالي القروض + الربح − إجمالي الشهادات</div><div class="v num" id="rLoanProfitNet"></div></div><div class="wide-pct"><div class="pv num" id="rLoanPctNet"></div><div class="pk">من مبلغك الأول</div></div></div>
+      <div class="stat wide"><div><div class="k">إجمالي القروض + الربح − إجمالي الشهادات</div><div class="v num" id="rLoanProfitNet"></div></div><div class="wide-pct"><div class="pv num" id="rLoanPctNet"></div><div class="pk">من إجمالي الشهادات</div></div></div>
     </div>
     <button class="more-btn" type="button" id="moreStats" aria-expanded="false">تفاصيل أكتر ▾</button>
     <div class="stats" id="statsMore" hidden>
@@ -823,7 +823,7 @@ function compute(p){
     $('#rNet').textContent=fmtPlain(R.net);
     $('#rNetPct').innerHTML=R.A>0?'الربح <b class="num">'+fmtField(R.net/R.A*100,2)+'%</b> من مبلغك':'-';
     $('#rLoanProfitNet').textContent=fmt(R.used+R.net-R.tot.cert);
-    $('#rLoanPctNet').textContent=R.A>0?fmtField((R.used+R.net-R.tot.cert)/R.A*100,2)+'%':'-';
+    $('#rLoanPctNet').textContent=R.tot.cert>0?fmtField((R.used+R.net-R.tot.cert)/R.tot.cert*100,2)+'%':'-';
     $('#rNetSub').textContent='على '+R.T+' شهر، من غير فايدة مبلغك';
     $('#rDiff').textContent=R.diffM>=0.5?fmtPlain(R.diffM):(R.diffM<=-0.5?'('+fmtPlain(-R.diffM)+')':'-');
     $('#rPaid').textContent=fmt(R.paid);

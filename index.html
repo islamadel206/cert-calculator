@@ -304,7 +304,6 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
   <h1 class="sr-only">حاسبة اللف بالشهادات</h1>
   <div class="layout">
     <aside class="col-in">
-      <h2 class="ph" style="visibility:hidden;height:0;margin:0">المدخلات</h2>
       <section class="panel flat" aria-label="المدخلات">
     <div class="fields">
 <div class="field full" id="fld-amount">
@@ -469,7 +468,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
       <table id="tbl">
         <thead>
           <tr class="grp">
-            <th scope="col" class="g-base s1" rowspan="1"></th><th scope="col" class="g-base s2"></th>
+            <th scope="col" class="g-base s1"><span class="sr-only">م</span></th><th scope="col" class="g-base s2"><span class="sr-only">التمويل</span></th>
             <th scope="col" class="g-cert sep" colspan="3">الشهادة</th>
             <th scope="col" class="g-loan sep" colspan="7">القرض اللي اشتريت بيه الشهادة</th>
             <th scope="col" class="g-diff sep" colspan="3">الفرق اللي هتدفعه</th>
@@ -497,7 +496,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
         <span class="err">من 1 لـ 360 شهر</span>
       </div>
     </div>
-    <div class="scroll"><table class="cmpt" id="cmpTbl"><thead><tr><th></th><th scope="col" id="cmpH1"></th><th scope="col" id="cmpH2"></th></tr></thead><tbody id="cmpBody"></tbody></table></div>
+    <div class="scroll"><table class="cmpt" id="cmpTbl"><thead><tr><th scope="col"><span class="sr-only">البند</span></th><th scope="col" id="cmpH1"></th><th scope="col" id="cmpH2"></th></tr></thead><tbody id="cmpBody"></tbody></table></div>
   </details>
 
   
@@ -928,6 +927,7 @@ function compute(p){
     }catch(e){ fail(); }
   });
   $('#reset').addEventListener('click',function(){
+    if(!window.confirm('ترجّع كل الأرقام للأصل؟ التعديلات اللي عملتها هتتمسح.')) return;
     state=Object.assign({},DEFAULTS); save();
     Object.keys(FIELDS).forEach(function(k){ $('#'+k).value=fmtField(state[k],FIELDS[k].dec); $('#fld-'+k).classList.remove('bad'); });
     nameEl.value=state.name;

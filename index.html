@@ -445,6 +445,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
       <div class="stat"><div class="k">إجمالي القروض</div><div class="v num" id="rLoans"></div></div>
       <div class="stat"><div class="k">عدد الشهادات</div><div class="v num" id="rCount"></div></div>
       <div class="stat wide"><div><div class="k">إجمالي القروض + الربح</div><div class="v num" id="rLoanProfitNet"></div><div class="cnote">إجمالي ربح الشهادة الأولى: <b class="num" id="rCertTot2"></b></div></div><div class="wide-pct"><div class="pv num" id="rLoanPctNet"></div><div class="pk">نسبة الفرق من ربح الشهادة الأولى</div><div class="pk">الفرق (المكسب): <b class="num" id="rDiffAmt"></b></div></div></div>
+      <div class="stat wide"><div><div class="k">المكسب في السنة</div><div class="v num" id="rYrAmt"></div><div class="cnote">الفرق ÷ مدة الخطة بالسنين</div></div><div class="wide-pct"><div class="pv num" id="rYrPct"></div><div class="pk">من ربح الشهادة الأولى</div></div></div>
     </div>
     <button class="more-btn" type="button" id="moreStats" aria-expanded="false">تفاصيل أكتر ▾</button>
     <div class="stats" id="statsMore" hidden>
@@ -827,6 +828,9 @@ function compute(p){
     $('#rCertTot2').textContent=fmt(R.single);
     $('#rLoanPctNet').textContent=R.single>0?fmtField((R.used+R.net-R.single)/R.single*100,2)+'%':'-';
     $('#rDiffAmt').textContent=fmt(R.used+R.net-R.single);
+    var yrs=R.T/12, yrAmt=(R.used+R.net-R.single)/yrs;
+    $('#rYrAmt').textContent=fmt(yrAmt);
+    $('#rYrPct').textContent=R.single>0?fmtField(yrAmt/R.single*100,2)+'%':'-';
     $('#rNetSub').textContent='على '+R.T+' شهر، من غير فايدة مبلغك';
     $('#rDiff').textContent=R.diffM>=0.5?fmtPlain(R.diffM):(R.diffM<=-0.5?'('+fmtPlain(-R.diffM)+')':'-');
     $('#rPaid').textContent=fmt(R.paid);

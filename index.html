@@ -420,7 +420,7 @@ td.sep,th.sep{border-inline-start:1px solid var(--line-strong)}
     <div class="col-out">
       <section class="kpis" aria-label="ملخص النتيجة">
     <div class="kpi main"><div class="k">إجمالي اللي هيرجعلك</div><div class="v num" id="rFinal"></div><div class="s">مبلغك + صافي الربح</div></div>
-    <div class="kpi"><div class="k">صافي الربح (بعد المدة)</div><div class="v num" id="rNet"></div><div class="s"><span class="pct" id="rNetPct"></span><span id="rNetSub"></span></div></div>
+    <div class="kpi"><div class="k">صافي الربح (بعد المدة)</div><div class="v num" id="rNet"></div><div class="s"><span id="rNetSub"></span></div></div>
     <div class="kpi diff"><div class="k">الفرق الشهري من جيبك</div><div class="v num" id="rDiff"></div><div class="s">جنيه / شهر</div></div>
   </section>
 
@@ -823,7 +823,6 @@ function compute(p){
 
     $('#rFinal').textContent=fmtPlain(R.final);
     $('#rNet').textContent=fmtPlain(R.net);
-    $('#rNetPct').innerHTML=R.A>0?'الربح <b class="num">'+fmtField(R.net/R.A*100,2)+'%</b> من مبلغك':'-';
     $('#rLoanProfitNet').textContent=fmt(R.used+R.net);
     $('#rCertTot2').textContent=fmt(R.single);
     $('#rLoanPctNet').textContent=R.single>0?fmtField((R.used+R.net-R.single)/R.single*100,2)+'%':'-';
